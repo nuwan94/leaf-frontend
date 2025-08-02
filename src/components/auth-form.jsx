@@ -95,15 +95,6 @@ export function AuthForm({ className, ...props }) {
           <CardContent className="grid p-0 md:grid-cols-2 h-full">
             {/* Form section with scroll */}
             <div className="h-full overflow-y-auto auth-form-scroll relative">
-              {/* Animated gradient background - theme aware */}
-              <div className="absolute inset-0 z-0 blur-2xl opacity-80 dark:opacity-90 transition-opacity duration-500
-                bg-[linear-gradient(120deg,_#f9fafb_0%,_#a7f3d0_40%,_#38bdf8_100%)]
-                dark:bg-[linear-gradient(120deg,_#232526_0%,_#414345_50%,_#485563_100%)]
-                animate-gradient-x dark:animate-gradient-dark"></div>
-              <div className="absolute inset-0 z-0 transition-colors duration-500
-                bg-gradient-to-tl from-sky-100/40 via-emerald-100/20 to-cyan-200/40 animate-gradient-pulse
-                dark:bg-gradient-to-tl dark:from-slate-800/60 dark:via-gray-700/30 dark:to-blue-900/40 dark:animate-gradient-fade"></div>
-
               <div className="relative z-10 p-6 md:p-8 min-h-full flex flex-col justify-center">
                 <div className="flex flex-col gap-6">
                   <AuthHeader mode={mode} />
