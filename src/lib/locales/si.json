@@ -11,8 +11,9 @@
   "forgotPassword": "මුරපදය අමතකද?",
   "dontHaveAccount": "ගිණුමක් නැද්ද?",
   "alreadyHaveAccount": "දැනටමත් ගිණුමක් තිබේද?",
-  "terms": "දිගටම ක්ලික් කිරීමෙන්, ඔබ අපගේ",
+  "termsText": "ඉදිරියට යාමෙන්, ඔබ අපගේ <termsLink>සේවා නියමයන්</termsLink> සහ <privacyLink>රහස්‍යතා ප්‍රතිපත්තිය</privacyLink> සමග ඒකග වේ",
   "termsOfService": "සේවා නියමයන්",
   "privacyPolicy": "රහස්‍යතා ප්‍රතිපත්තිය",
-  "and": "සහ"
+  "and": "සහ",
+  "phonePlaceholder": "+94 71 234 5678"
 }

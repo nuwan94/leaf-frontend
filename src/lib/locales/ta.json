@@ -11,8 +11,9 @@
   "forgotPassword": "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
   "dontHaveAccount": "கணக்கு இல்லையா?",
   "alreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா?",
-  "terms": "தொடர்ந்து கிளிக் செய்வதன் மூலம், நீங்கள் எங்கள்",
+  "termsText": "தொடர்வதன் மூலம், நீங்கள் எங்கள் <termsLink>சேவை விதிகள்</termsLink> மற்றும் <privacyLink>தனியுரிமைக் கொள்கை</privacyLink> ஒப்புக்கொள்கிறீர்கள்",
   "termsOfService": "சேவை விதிகள்",
   "privacyPolicy": "தனியுரிமைக் கொள்கை",
-  "and": "மற்றும்"
+  "and": "மற்றும்",
+  "phonePlaceholder": "+94 71 234 5678"
 }

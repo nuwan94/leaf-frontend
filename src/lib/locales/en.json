@@ -39,8 +39,8 @@
   "phoneRequired": "Phone number is required",
   "roleRequired": "Please select a role",
   "confirmPasswordRequired": "Please confirm your password",
-  "terms": "By clicking continue, you agree to our",
+  "termsText": "By proceeding, you agree to our <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>",
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
-  "and": "and"
+  "phonePlaceholder": "+94 71 234 5678"
 }

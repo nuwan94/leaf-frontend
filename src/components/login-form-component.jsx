@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,7 @@ export function LoginForm({
         <Input
           id="login-email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="name@example.com"
           {...form.register('email')}
           className={cn(form.formState.errors.email && 'border-destructive')}
           disabled={isLoading}
@@ -97,6 +97,17 @@ export function LoginForm({
         >
           {t('signup')}
         </Button>
+      </div>
+
+      {/* Terms and Conditions */}
+      <div className="text-muted-foreground text-center text-xs text-balance">
+        <Trans
+          i18nKey="termsText"
+          components={{
+            termsLink: <a href="#" className="underline underline-offset-4 hover:text-primary" />,
+            privacyLink: <a href="#" className="underline underline-offset-4 hover:text-primary" />
+          }}
+        />
       </div>
     </form>
   );

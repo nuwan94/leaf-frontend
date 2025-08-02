@@ -13,9 +13,15 @@ const resources = {
   ta: { translation: { appName, ...ta } },
 };
 
+// Get saved language preference or default to English
+const getInitialLanguage = () => {
+  const savedLanguage = localStorage.getItem('user-language');
+  return savedLanguage || 'en';
+};
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en',
+  lng: getInitialLanguage(),
   fallbackLng: 'en',
   interpolation: {
     escapeValue: false,

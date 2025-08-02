@@ -2,9 +2,11 @@ import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function DarkModeSwitcher({ accent = false }) {
-  const [dark, setDark] = useState(() =>
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  );
+  const [dark, setDark] = useState(() => {
+    // Check localStorage first, then default to light mode (false)
+    const saved = localStorage.getItem('dark-mode');
+    return saved ? JSON.parse(saved) : false;
+  });
 
   useEffect(() => {
     if (dark) {
@@ -12,6 +14,8 @@ export function DarkModeSwitcher({ accent = false }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    // Save preference to localStorage
+    localStorage.setItem('dark-mode', JSON.stringify(dark));
   }, [dark]);
 
   return (
