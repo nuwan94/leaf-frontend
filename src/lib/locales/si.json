@@ -1,0 +1,18 @@
+{
+  "welcome": "ආයුබෝවන්",
+  "createAccount": "ඔබගේ ගිණුම සාදන්න",
+  "loginDesc": "ඔබගේ {{appName}} ගිණුමට පිවිසෙන්න",
+  "signupDesc": "{{appName}} හා එක්වී ඔබගේ ගමන ආරම්භ කරන්න",
+  "email": "ඊමේල්",
+  "password": "මුරපදය",
+  "name": "නම",
+  "login": "පිවිසෙන්න",
+  "signup": "ලියාපදිංචි වන්න",
+  "forgotPassword": "මුරපදය අමතකද?",
+  "dontHaveAccount": "ගිණුමක් නැද්ද?",
+  "alreadyHaveAccount": "දැනටමත් ගිණුමක් තිබේද?",
+  "terms": "දිගටම ක්ලික් කිරීමෙන්, ඔබ අපගේ",
+  "termsOfService": "සේවා නියමයන්",
+  "privacyPolicy": "රහස්‍යතා ප්‍රතිපත්තිය",
+  "and": "සහ"
+}
