@@ -250,7 +250,7 @@ export function AccessibilityControls({ className, ...props }) {
                         variant={colorblindFilter !== 'none' ? 'default' : 'outline'}
                         size="sm"
                         onClick={toggleColorblindFilter}
-                        className="h-6 text-xs justify-start px-2"
+                        className="h-6 text-xs justify-start px-2 cursor-pointer"
                       >
                         <Eye className="h-3 w-3 mr-1" />
                         {getColorblindFilterLabel()}
@@ -304,27 +304,22 @@ export function AccessibilityControls({ className, ...props }) {
       </div>
 
       {/* CSS Styles for accessibility filters */}
-      <style jsx>{`
+      <style>{`
         .accessibility-protanopia {
           filter: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><defs><filter id="protanopia"><feColorMatrix type="matrix" values="0.567,0.433,0,0,0 0.558,0.442,0,0,0 0,0.242,0.758,0,0 0,0,0,1,0"/></filter></defs></svg>#protanopia');
         }
-        
         .accessibility-deuteranopia {
           filter: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><defs><filter id="deuteranopia"><feColorMatrix type="matrix" values="0.625,0.375,0,0,0 0.7,0.3,0,0,0 0,0.3,0.7,0,0 0,0,0,1,0"/></filter></defs></svg>#deuteranopia');
         }
-        
         .accessibility-tritanopia {
           filter: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><defs><filter id="tritanopia"><feColorMatrix type="matrix" values="0.95,0.05,0,0,0 0,0.433,0.567,0,0 0,0.475,0.525,0,0 0,0,0,1,0"/></filter></defs></svg>#tritanopia');
         }
-        
         .accessibility-monochrome {
           filter: grayscale(100%);
         }
-        
         .accessibility-high-contrast {
           filter: contrast(150%) brightness(110%);
         }
-        
         .accessibility-reduced-motion * {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
