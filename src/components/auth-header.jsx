@@ -6,7 +6,7 @@ export function AuthHeader({ mode }) {
 
   return (
     <div className="flex flex-col items-center text-center">
-      <img src={Logo} alt={t('appName') + ' Logo'} className="h-12 mb-4" />
+      <a href="/"><img src={Logo} alt={t('appName') + ' Logo'} className="h-24 mb-4" /></a>
       <h1 className="text-2xl font-bold">
         {mode === 'login' ? t('welcome') : t('createAccount')}
       </h1>

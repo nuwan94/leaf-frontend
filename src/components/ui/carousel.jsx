@@ -1,6 +1,5 @@
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react";
-import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -73,6 +72,20 @@ function Carousel({
     };
   }, [api, onSelect])
 
+  React.useEffect(() => {
+    if (!api) return;
+
+    const cycleSlides = setInterval(() => {
+      if (api.canScrollNext()) {
+        api.scrollNext();
+      } else {
+        api.scrollTo(0);
+      }
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(cycleSlides);
+  }, [api]);
+
   return (
     (<CarouselContext.Provider
       value={{
@@ -141,54 +154,36 @@ function CarouselItem({
   );
 }
 
-function CarouselPrevious({
-  className,
-  variant = "outline",
-  size = "icon",
-  ...props
-}) {
-  const { orientation, scrollPrev, canScrollPrev } = useCarousel()
+function CarouselDots() {
+  const { api } = useCarousel();
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    const onSelect = () => {
+      setSelectedIndex(api.selectedScrollSnap());
+    };
+
+    api.on("select", onSelect);
+    return () => api.off("select", onSelect);
+  }, [api]);
+
+  if (!api) return null;
 
   return (
-    (<Button
-      data-slot="carousel-previous"
-      variant={variant}
-      size={size}
-      className={cn("absolute size-8 rounded-full", orientation === "horizontal"
-        ? "top-1/2 -left-12 -translate-y-1/2"
-        : "-top-12 left-1/2 -translate-x-1/2 rotate-90", className)}
-      disabled={!canScrollPrev}
-      onClick={scrollPrev}
-      {...props}>
-      <ArrowLeft />
-      <span className="sr-only">Previous slide</span>
-    </Button>)
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+      {Array.from({ length: api.scrollSnapList().length }).map((_, index) => (
+        <button
+          key={index}
+          onClick={() => api.scrollTo(index)}
+          className={`h-2 w-2 rounded-full transition-colors cursor-pointer ${
+            index === selectedIndex ? "bg-primary h-3 w-3" : "bg-gray-300"
+          }`}
+        />
+      ))}
+    </div>
   );
 }
 
-function CarouselNext({
-  className,
-  variant = "outline",
-  size = "icon",
-  ...props
-}) {
-  const { orientation, scrollNext, canScrollNext } = useCarousel()
-
-  return (
-    (<Button
-      data-slot="carousel-next"
-      variant={variant}
-      size={size}
-      className={cn("absolute size-8 rounded-full", orientation === "horizontal"
-        ? "top-1/2 -right-12 -translate-y-1/2"
-        : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90", className)}
-      disabled={!canScrollNext}
-      onClick={scrollNext}
-      {...props}>
-      <ArrowRight />
-      <span className="sr-only">Next slide</span>
-    </Button>)
-  );
-}
-
-export { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext };
+export { Carousel, CarouselContent, CarouselItem, CarouselDots };

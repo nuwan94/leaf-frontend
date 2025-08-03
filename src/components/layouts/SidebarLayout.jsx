@@ -6,19 +6,20 @@ import { LangSelector } from '@/components/lang-selector';
 import { DarkModeSwitcher } from '@/components/dark-mode-switcher';
 import Logo from '@/assets/logo.png';
 import {
-  Home,
-  Package,
-  Users,
   BarChart3,
-  Settings,
-  Menu,
-  X,
-  Truck,
-  ShoppingBag,
-  UserCheck,
+  Home,
+  LogOut,
   MapPin,
-  LogOut
+  Menu,
+  Package,
+  Settings,
+  ShoppingBag,
+  Truck,
+  UserCheck,
+  Users,
+  X,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const roleMenus = {
   admin: [
@@ -34,19 +35,20 @@ const roleMenus = {
     { icon: Package, label: 'My Products', href: '/farmer/products' },
     { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' },
     { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics' },
-    { icon: Settings, label: 'Profile', href: '/farmer/profile' },
+    { icon: Settings, label: 'Profile', href: '/profile' },
   ],
   'delivery-agent': [
     { icon: Home, label: 'Dashboard', href: '/delivery-agent' },
     { icon: Truck, label: 'Deliveries', href: '/delivery-agent/deliveries' },
     { icon: MapPin, label: 'Routes', href: '/delivery-agent/routes' },
-    { icon: UserCheck, label: 'Profile', href: '/delivery-agent/profile' },
+    { icon: UserCheck, label: 'Profile', href: '/profile' },
   ],
 };
 
 export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const menuItems = roleMenus[role] || roleMenus.admin;
 
   const handleLogout = () => {
@@ -65,17 +67,21 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
       )}
 
       {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out",
-        "md:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-      )}>
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out',
+          'md:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        )}
+      >
         <div className="flex flex-col h-full min-h-0">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <div className="flex items-center space-x-3">
               <img src={Logo} alt="Leaf" className="h-8 w-8" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Leaf</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                {t('appName')}
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -138,22 +144,21 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
                 </h1>
               )}
               {subtitle && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight">
-                  {subtitle}
-                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight">{subtitle}</p>
               )}
             </div>
-            <div className="w-10"></div> {/* Spacer for balance */}
+            <div className="w-10"></div>
+            {/* Spacer for balance */}
           </div>
         </div>
 
         {/* Page content */}
         <main className="flex-1 overflow-auto">
-          <div className="p-6">
-            {children}
-          </div>
+          <div className="p-6">{children}</div>
         </main>
       </div>
     </div>
   );
 }
+
+export default SidebarLayout;

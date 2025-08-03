@@ -79,7 +79,7 @@ function CategoryMenu({ items, level = 0 }) {
 	);
 }
 
-export function TopNavLayout({ children }) {
+const TopNavLayout = ({ children }) => {
 	const [catMenuOpen, setCatMenuOpen] = useState(false);
 	const [alertOpen, setAlertOpen] = useState(false);
 	const [alertConfig, setAlertConfig] = useState({ title: '', description: '', action: '' });
@@ -147,7 +147,7 @@ export function TopNavLayout({ children }) {
 				{/* Conditional rendering based on login status */}
 				{isLoggedIn ? (
 					<div className="flex items-center gap-2">
-						<Button variant="ghost" size="sm" className="flex items-center gap-1">
+						<Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={() => navigate('/profile')}>
 							<User className="h-4 w-4" />
 							Profile
 						</Button>
@@ -198,4 +198,6 @@ export function TopNavLayout({ children }) {
 			</main>
 		</div>
 	);
-}
+};
+
+export default TopNavLayout;

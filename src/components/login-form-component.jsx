@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslation, Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -11,7 +11,7 @@ export function LoginForm({
   showPassword,
   setShowPassword,
   isLoading,
-  onSwitchToSignup
+  onSwitchToSignup,
 }) {
   const { t } = useTranslation();
 
@@ -25,7 +25,11 @@ export function LoginForm({
   const handleDemoLogin = (user) => {
     // Simulate login by saving user to localStorage and redirecting
     localStorage.setItem('user', JSON.stringify(user));
-    window.location.href = `/${user.role.replace('delivery-agent', 'delivery-agent-home').replace('admin', 'admin-home').replace('customer', 'customer-home').replace('farmer', 'farmer-home')}`;
+    window.location.href = `/${user.role
+      .replace('delivery-agent', 'delivery-agent')
+      .replace('admin', 'admin')
+      .replace('customer', '')
+      .replace('farmer', 'farmer')}`;
   };
 
   return (
@@ -41,9 +45,7 @@ export function LoginForm({
           disabled={isLoading}
         />
         {form.formState.errors.email && (
-          <p className="text-sm text-destructive">
-            {t(form.formState.errors.email.message)}
-          </p>
+          <p className="text-sm text-destructive">{t(form.formState.errors.email.message)}</p>
         )}
       </div>
 
@@ -64,10 +66,7 @@ export function LoginForm({
             id="login-password"
             type={showPassword ? 'text' : 'password'}
             {...form.register('password')}
-            className={cn(
-              'pr-10',
-              form.formState.errors.password && 'border-destructive'
-            )}
+            className={cn('pr-10', form.formState.errors.password && 'border-destructive')}
             disabled={isLoading}
           />
           <Button
@@ -81,9 +80,7 @@ export function LoginForm({
           </Button>
         </div>
         {form.formState.errors.password && (
-          <p className="text-sm text-destructive">
-            {t(form.formState.errors.password.message)}
-          </p>
+          <p className="text-sm text-destructive">{t(form.formState.errors.password.message)}</p>
         )}
       </div>
 
@@ -107,15 +104,13 @@ export function LoginForm({
             size="sm"
             onClick={() => handleDemoLogin(user)}
           >
-            Demo {user.role.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            Demo {user.role.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
           </Button>
         ))}
       </div>
 
       <div className="text-center text-sm">
-        <span className="text-muted-foreground">
-          {t('dontHaveAccount')}{' '}
-        </span>
+        <span className="text-muted-foreground">{t('dontHaveAccount')} </span>
         <Button
           type="button"
           variant="link"
@@ -132,7 +127,7 @@ export function LoginForm({
           i18nKey="termsText"
           components={{
             termsLink: <a href="#" className="underline underline-offset-4 hover:text-primary" />,
-            privacyLink: <a href="#" className="underline underline-offset-4 hover:text-primary" />
+            privacyLink: <a href="#" className="underline underline-offset-4 hover:text-primary" />,
           }}
         />
       </div>
