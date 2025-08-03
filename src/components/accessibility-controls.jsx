@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Type, Plus, Minus, RotateCcw, Settings, Eye, Palette, Focus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +11,7 @@ export function AccessibilityControls({ className, ...props }) {
   const [colorblindFilter, setColorblindFilter] = useState('none');
   const [highContrast, setHighContrast] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Load saved settings from localStorage on component mount
   useEffect(() => {
@@ -149,158 +151,96 @@ export function AccessibilityControls({ className, ...props }) {
 
   return (
     <>
-      <div
-        className={cn(
-          'fixed bottom-4 right-4 z-50 transition-all duration-300 ease-in-out',
-          className
-        )}
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
-        {...props}
-      >
-        <TooltipProvider>
-          <div
-            className={cn(
-              'flex gap-2 p-2 bg-background border rounded-lg shadow-lg transition-all duration-300 ease-in-out',
-              isExpanded ? 'flex-col' : 'flex-row'
-            )}
-          >
-            {/* Collapsed state - Settings icon */}
-            {!isExpanded && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Accessibility Controls</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+      <div className={cn('fixed bottom-4 right-4 z-50', className)} {...props}>
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="h-10 w-10 p-0" aria-label="Accessibility Controls">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-xs w-full rounded-lg p-4 bg-background border shadow-lg">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold mb-2">
+              <Settings className="h-4 w-4" /> Accessibility
+            </DialogTitle>
 
-            {/* Expanded state - All controls */}
-            {isExpanded && (
-              <>
-                {/* Header */}
-                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground px-2 pb-1 border-b">
-                  <Settings className="h-3 w-3" />
-                  <span>Accessibility</span>
-                </div>
+            {/* Font Size Section */}
+            <div className="flex flex-col gap-2 mb-2">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Type className="h-3 w-3" />
+                <span>Font: {fontSize}%</span>
+              </div>
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={decreaseFontSize}
+                  disabled={fontSize <= 80}
+                  className="h-6 w-6 p-0 text-xs"
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetFontSize}
+                  className="h-6 w-6 p-0 text-xs"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={increaseFontSize}
+                  disabled={fontSize >= 150}
+                  className="h-6 w-6 p-0 text-xs"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
 
-                {/* Font Size Section */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground px-2">
-                    <Type className="h-3 w-3" />
-                    <span>Font: {fontSize}%</span>
-                  </div>
+            {/* Vision Filters Section */}
+            <div className="flex flex-col gap-2 mb-2">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Palette className="h-3 w-3" />
+                <span>Vision</span>
+              </div>
+              <Button
+                variant={colorblindFilter !== 'none' ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleColorblindFilter}
+                className="h-6 text-xs justify-start px-2 cursor-pointer mb-1"
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                {getColorblindFilterLabel()}
+              </Button>
+              <Button
+                variant={highContrast ? 'default' : 'outline'}
+                size="sm"
+                onClick={toggleHighContrast}
+                className="h-6 text-xs justify-start px-2 mb-1"
+              >
+                <Focus className="h-3 w-3 mr-1" />
+                High Contrast
+              </Button>
+            </div>
 
-                  <div className="flex gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={decreaseFontSize}
-                          disabled={fontSize <= 80}
-                          className="h-6 w-6 p-0 text-xs"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left">
-                        <p>Decrease font size</p>
-                      </TooltipContent>
-                    </Tooltip>
+            {/* Reset Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetAllSettings}
+              className="h-6 text-xs mb-2"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset All
+            </Button>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={increaseFontSize}
-                          disabled={fontSize >= 150}
-                          className="h-6 w-6 p-0 text-xs"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left">
-                        <p>Increase font size</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-
-                {/* Vision Filters Section */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground px-2">
-                    <Palette className="h-3 w-3" />
-                    <span>Vision</span>
-                  </div>
-
-                  {/* Colorblind Filter */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={colorblindFilter !== 'none' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={toggleColorblindFilter}
-                        className="h-6 text-xs justify-start px-2 cursor-pointer"
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        {getColorblindFilterLabel()}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left">
-                      <p>Toggle colorblind filters</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* High Contrast */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={highContrast ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={toggleHighContrast}
-                        className="h-6 text-xs justify-start px-2"
-                      >
-                        <Focus className="h-3 w-3 mr-1" />
-                        High Contrast
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left">
-                      <p>Toggle high contrast mode</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-
-                {/* Reset Button */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={resetAllSettings}
-                      className="h-6 text-xs"
-                    >
-                      <RotateCcw className="h-3 w-3 mr-1" />
-                      Reset All
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">
-                    <p>Reset all accessibility settings</p>
-                  </TooltipContent>
-                </Tooltip>
-              </>
-            )}
-          </div>
-        </TooltipProvider>
+            <DialogClose asChild>
+              <Button variant="secondary" size="sm" className="w-full mt-2">Close</Button>
+            </DialogClose>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* CSS Styles for accessibility filters */}
