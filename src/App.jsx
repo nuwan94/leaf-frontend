@@ -11,12 +11,14 @@ const App = () => (
   <div className="bg-muted h-screen flex flex-col">
     <div className="flex-1 min-h-0">
       <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<CustomerHome />} />
+        <Route path="/customer" element={<CustomerHome />} />
         <Route path="/login" element={<AuthForm />} />
-        <Route
-          element={<ProtectedRoute />} // Wrap all below in ProtectedRoute
-        >
+
+        {/* Protected routes for authenticated users */}
+        <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminHome />} />
-          <Route path="/customer" element={<CustomerHome />} />
           <Route path="/farmer" element={<FarmerHome />} />
           <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
 
@@ -26,7 +28,9 @@ const App = () => (
           <Route path="/farmer-home" element={<Navigate to="/farmer" replace />} />
           <Route path="/delivery-agent-home" element={<Navigate to="/delivery-agent" replace />} />
         </Route>
-        <Route path="*" element={<Navigate to="/login" replace />} />
+
+        {/* Fallback to home for unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
     <AccessibilityControls />
