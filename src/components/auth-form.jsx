@@ -11,6 +11,8 @@ import { AuthHeader } from '@/components/auth-header';
 import { LoginForm } from '@/components/login-form-component';
 import { SignupForm } from '@/components/signup-form-component';
 import { AuthBackground } from '@/components/auth-background';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { authService } from '@/lib/services';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -37,6 +39,7 @@ export function AuthForm({ className, ...props }) {
   const [mode, setMode] = useState('login');
   const [showPassword, setShowPassword] = useState(false);
   const { t } = useTranslation();
+  const { login } = useAuth();
 
   // Setup forms
   const loginForm = useForm({
@@ -65,11 +68,82 @@ export function AuthForm({ className, ...props }) {
 
   const onSubmit = async (data) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log('Form submitted:', data);
+      if (mode === 'login') {
+        // Use the new login method from useAuth hook
+        const user = await login({
+          email: data.email,
+          password: data.password,
+        });
+
+        console.log('Login successful:', user);
+
+        // Redirect to home - DynamicHome component will handle role-based routing
+        window.location.href = '/';
+      } else {
+        // Handle signup (keeping existing logic for now)
+        const response = await authService.register({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          role: data.role,
+          password: data.password,
+        });
+
+        console.log('Registration response:', response); // Debug log
+
+        // Handle registration response (assuming similar structure)
+        if (response.success && response.data?.user) {
+          const userData = response.data.user;
+          const accessToken = response.data.access_token;
+          const refreshToken = response.data.refresh_token;
+
+          const roleMap = {
+            1: 'admin',
+            2: 'customer',
+            3: 'farmer',
+            4: 'delivery-agent'
+          };
+
+          const user = {
+            ...userData,
+            role: roleMap[userData.role_id] || 'customer',
+            token: accessToken,
+            refresh_token: refreshToken
+          };
+
+          localStorage.setItem('user', JSON.stringify(user));
+
+          // Redirect to home - DynamicHome component will handle role-based routing
+          window.location.href = '/';
+        } else {
+          // If email verification is required, show success message
+          alert(t('registrationSuccessful'));
+          switchMode('login');
+        }
+      }
     } catch (error) {
-      console.error('Submission error:', error);
+      console.error('Authentication error:', error);
+
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        currentForm.setError('email', {
+          type: 'manual',
+          message: 'invalidCredentials'
+        });
+      } else if (error.response?.status === 409) {
+        currentForm.setError('email', {
+          type: 'manual',
+          message: 'emailAlreadyExists'
+        });
+      } else {
+        // General error handling
+        const errorMessage = error.response?.data?.message || 'authenticationFailed';
+        currentForm.setError('root', {
+          type: 'manual',
+          message: errorMessage
+        });
+      }
     }
   };
 

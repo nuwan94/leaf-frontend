@@ -1,173 +1,140 @@
-import TopNavLayout from '@/components/layouts/TopNavLayout';
-import { Card } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselDots,
-} from '@/components/ui/carousel';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import TopNavLayout from '@/components/layouts/TopNavLayout';
+import { ProductCard } from '@/components/ProductCard';
+import { customerService } from '@/lib/services';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import bannerImage from '@/assets/banner1.jpg';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
-export default function CustomerHome() {
+export default function CustomerDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({ title: '', description: '', action: '' });
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  const isLoggedIn = !!user;
+  // Fetch featured/recent products for home page
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await customerService.getProducts({ limit: 12 });
+        const productsData = response.data || response.products || [];
+        setProducts(productsData);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleAddToCart = (productName) => {
-    if (!isLoggedIn) {
-      setAlertConfig({
-        title: 'Login Required',
-        description: `Please login to add ${productName} to your cart. You'll be redirected to the login page.`,
-        action: 'Go to Login',
-      });
-      setAlertOpen(true);
-      return;
-    }
-    // Handle add to cart for logged-in users
-    console.log(`Added ${productName} to cart`);
-    // You can add actual cart logic here
-  };
-
-  const handleShopNow = () => {
-    if (!isLoggedIn) {
-      setAlertConfig({
-        title: 'Login Required',
-        description:
-          'Please login to start shopping. You can browse products without logging in, but you need an account to make purchases.',
-        action: 'Go to Login',
-      });
-      setAlertOpen(true);
-      return;
-    }
-    // Handle shop now for logged-in users
-    console.log('Navigate to shop page');
-  };
-
-  const handleAlertAction = () => {
-    setAlertOpen(false);
-    navigate('/login');
-  };
-
-  const featuredProducts = [
-    { id: 1, name: 'Fresh Tomatoes', price: '$4.99/kg', rating: 4.8 },
-    { id: 2, name: 'Organic Carrots', price: '$3.49/kg', rating: 4.9 },
-    { id: 3, name: 'Green Lettuce', price: '$2.99/head', rating: 4.7 },
-    { id: 4, name: 'Bell Peppers', price: '$5.99/kg', rating: 4.6 },
-  ];
-
-  const carouselSlides = [
-    {
-      id: 1,
-      title: 'Fresh Produce Delivered to Your Door',
-      subtitle: 'Shop the freshest fruits and vegetables from local farmers',
-      cta: 'Shop Now',
-      image: bannerImage,
-    },
-    {
-      id: 2,
-      title: 'Slide 2 Title',
-      subtitle: 'This is the subtitle for slide 2.',
-      cta: 'Call to Action 2',
-      image: bannerImage,
-    },
-    {
-      id: 3,
-      title: 'Slide 3 Title',
-      subtitle: 'This is the subtitle for slide 3.',
-      cta: 'Call to Action 3',
-      image: bannerImage,
-    },
-  ];
+    fetchProducts();
+  }, []);
 
   return (
     <TopNavLayout>
-      <div className="carousel-container">
-        <Carousel>
-          <CarouselContent>
-            {carouselSlides.map((slide) => (
-              <CarouselItem key={slide.id}>
-                <div
-                  className="h-72 w-full relative"
-                  style={{
-                    backgroundImage: `url(${slide.image})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white">
-                    <h2 className="text-2xl font-bold mb-2">{slide.title}</h2>
-                    <p className="text-lg mb-4">{slide.subtitle}</p>
-                    <Button size="lg" className="bg-green-600 hover:bg-green-700">
-                      {slide.cta}
-                    </Button>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselDots />
-        </Carousel>
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl font-bold mb-4">Fresh Produce Market</h1>
+            <p className="text-lg text-muted-foreground mb-8">
+              Discover the freshest fruits, vegetables, and farm products directly from local farmers
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                onClick={() => navigate('/search')}
+                className="flex items-center gap-2"
+              >
+                <Sparkles className="h-5 w-5" />
+                Browse All Products
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigate('/search?category=1')}
+              >
+                Shop by Category
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl">
-        {/* Featured Products */}
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Featured Products</h2>
-            <Button variant="outline">View All</Button>
+      {/* Featured Products */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Featured Products</h2>
+            <p className="text-muted-foreground">Fresh picks from our farmers</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden">
-                <div className="p-4">
-                  <h3 className="font-semibold mb-1">{product.name}</h3>
-                  <div className="flex items-center mb-2">
-                    <span className="text-sm text-gray-600 ml-1">Rating: {product.rating}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-green-600">{product.price}</span>
-                    <Button size="sm" onClick={() => handleAddToCart(product.name)}>
-                      Add to Cart
-                    </Button>
-                  </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/search')}
+            className="flex items-center gap-2"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Products Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <div key={index} className="animate-pulse">
+                <div className="bg-muted rounded-lg aspect-[4/3] mb-2"></div>
+                <div className="space-y-1">
+                  <div className="bg-muted rounded h-3 w-3/4"></div>
+                  <div className="bg-muted rounded h-3 w-1/2"></div>
+                  <div className="bg-muted rounded h-6 w-full"></div>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
-        </section>
+        ) : products.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-muted-foreground mb-4">
+              No products available at the moment.
+            </div>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Refresh
+            </Button>
+          </div>
+        )}
+      </div>
 
-        {/* Alert Dialog */}
-        <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{alertConfig.title}</AlertDialogTitle>
-              <AlertDialogDescription>{alertConfig.description}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleAlertAction}>
-                {alertConfig.action}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {/* Categories Section */}
+      <div className="bg-muted/50 py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold text-center mb-8">Shop by Category</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: 'Vegetables', id: 1, emoji: '🥬' },
+              { name: 'Fruits', id: 2, emoji: '🍎' },
+              { name: 'Grains', id: 3, emoji: '🌾' },
+              { name: 'Dairy', id: 4, emoji: '🥛' }
+            ].map((category) => (
+              <Button
+                key={category.id}
+                variant="outline"
+                className="h-24 flex-col gap-2 bg-background hover:bg-accent"
+                onClick={() => navigate(`/search?category=${category.id}`)}
+              >
+                <span className="text-2xl">{category.emoji}</span>
+                <span className="font-medium">{category.name}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
     </TopNavLayout>
   );

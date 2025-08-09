@@ -15,23 +15,6 @@ export function LoginForm({
 }) {
   const { t } = useTranslation();
 
-  const demoUsers = [
-    { email: 'admin@example.com', password: 'admin1234', role: 'admin' },
-    { email: 'customer@example.com', password: 'customer1234', role: 'customer' },
-    { email: 'farmer@example.com', password: 'farmer1234', role: 'farmer' },
-    { email: 'delivery@example.com', password: 'delivery1234', role: 'delivery-agent' },
-  ];
-
-  const handleDemoLogin = (user) => {
-    // Simulate login by saving user to localStorage and redirecting
-    localStorage.setItem('user', JSON.stringify(user));
-    window.location.href = `/${user.role
-      .replace('delivery-agent', 'delivery-agent')
-      .replace('admin', 'admin')
-      .replace('customer', '')
-      .replace('farmer', 'farmer')}`;
-  };
-
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
       <div className="grid gap-3">
@@ -94,20 +77,6 @@ export function LoginForm({
           t('login')
         )}
       </Button>
-
-      <div className="flex flex-wrap gap-2 mb-2">
-        {demoUsers.map((user) => (
-          <Button
-            key={user.role}
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleDemoLogin(user)}
-          >
-            Demo {user.role.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-          </Button>
-        ))}
-      </div>
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">{t('dontHaveAccount')} </span>

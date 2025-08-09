@@ -2,13 +2,16 @@ import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Users, Package, ShoppingBag } from 'lucide-react';
+import { useCurrency } from '@/lib/currency';
 
 export default function AdminHome() {
+  const { formatPrice } = useCurrency();
+
   const stats = [
     { title: 'Total Users', value: '1,247', icon: Users, change: '+12%' },
     { title: 'Total Products', value: '892', icon: Package, change: '+8%' },
     { title: 'Active Orders', value: '156', icon: ShoppingBag, change: '+23%' },
-    { title: 'Revenue', value: '$12,459', icon: BarChart3, change: '+15%' },
+    { title: 'Revenue', value: formatPrice(12459), icon: BarChart3, change: '+15%' },
   ];
 
   return (

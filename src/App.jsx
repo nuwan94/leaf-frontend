@@ -2,35 +2,51 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthForm } from '@/components/auth-form';
 import { AccessibilityControls } from '@/components/accessibility-controls';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { DynamicHome } from '@/components/DynamicHome';
 import AdminHome from '@/pages/admin';
 import CustomerHome from '@/pages/customer';
 import FarmerHome from '@/pages/farmer';
 import DeliveryAgentHome from '@/pages/delivery-agent';
+import CartPage from '@/pages/cart';
+import SearchPage from '@/pages/search';
 import Profile from '@/pages/profile';
+import { TokenStatus } from '@/components/TokenStatus.jsx';
+import { CartProvider } from '@/lib/hooks/useCart.jsx';
 
 const App = () => {
   return (
-    <div className="bg-muted h-screen flex flex-col">
-      <div className="flex-1 min-h-0">
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<CustomerHome />} />
-          <Route path="/login" element={<AuthForm />} />
+    <CartProvider>
+      <div className="bg-muted h-screen flex flex-col">
+        <div className="flex-1 min-h-0">
+          <TokenStatus />
+          <Routes>
+            {/* Dynamic root route - shows appropriate dashboard based on user role */}
+            <Route path="/" element={<DynamicHome />} />
 
-          {/* Protected routes for authenticated users */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin" element={<AdminHome />} />
-            <Route path="/farmer" element={<FarmerHome />} />
-            <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
+            {/* Public routes */}
+            <Route path="/login" element={<AuthForm />} />
+            <Route path="/search" element={<SearchPage />} />
 
-          {/* Fallback to home for unknown routes */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Protected routes for authenticated users */}
+            <Route element={<ProtectedRoute />}>
+              {/* Specific role routes (alternative access paths) */}
+              <Route path="/admin" element={<AdminHome />} />
+              <Route path="/farmer" element={<FarmerHome />} />
+              <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
+              <Route path="/customer" element={<CustomerHome />} />
+
+              {/* Other protected routes */}
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+
+            {/* Fallback to home for unknown routes */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+        <AccessibilityControls />
       </div>
-      <AccessibilityControls />
-    </div>
+    </CartProvider>
   );
 };
 

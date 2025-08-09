@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LangSelector } from '@/components/lang-selector';
 import { DarkModeSwitcher } from '@/components/dark-mode-switcher';
+import { useAuth } from '@/lib/hooks/useAuth';
 import Logo from '@/assets/logo.png';
 import {
   BarChart3,
@@ -23,7 +24,7 @@ import { useTranslation } from 'react-i18next';
 
 const roleMenus = {
   admin: [
-    { icon: Home, label: 'Dashboard', href: '/admin' },
+    { icon: Home, label: 'Dashboard', href: '/' },
     { icon: Users, label: 'Users', href: '/admin/users' },
     { icon: Package, label: 'Products', href: '/admin/products' },
     { icon: ShoppingBag, label: 'Orders', href: '/admin/orders' },
@@ -31,14 +32,14 @@ const roleMenus = {
     { icon: Settings, label: 'Settings', href: '/admin/settings' },
   ],
   farmer: [
-    { icon: Home, label: 'Dashboard', href: '/farmer' },
+    { icon: Home, label: 'Dashboard', href: '/' },
     { icon: Package, label: 'My Products', href: '/farmer/products' },
     { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' },
     { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics' },
     { icon: Settings, label: 'Profile', href: '/profile' },
   ],
   'delivery-agent': [
-    { icon: Home, label: 'Dashboard', href: '/delivery-agent' },
+    { icon: Home, label: 'Dashboard', href: '/' },
     { icon: Truck, label: 'Deliveries', href: '/delivery-agent/deliveries' },
     { icon: MapPin, label: 'Routes', href: '/delivery-agent/routes' },
     { icon: UserCheck, label: 'Profile', href: '/profile' },
@@ -49,11 +50,18 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { logout } = useAuth();
   const menuItems = roleMenus[role] || roleMenus.admin;
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still navigate to login even if logout API fails
+      navigate('/login');
+    }
   };
 
   return (
@@ -77,12 +85,15 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
         <div className="flex flex-col h-full min-h-0">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-            <div className="flex items-center space-x-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <img src={Logo} alt="Leaf" className="h-8 w-8" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">
                 {t('appName')}
               </span>
-            </div>
+            </button>
             <Button
               variant="ghost"
               size="sm"

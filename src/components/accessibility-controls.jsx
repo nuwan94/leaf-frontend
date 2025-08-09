@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Type, Plus, Minus, RotateCcw, Settings, Eye, Palette, Focus } from 'lucide-react';
+import { Type, Plus, Minus, RotateCcw, Settings, Eye, Palette, Focus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function AccessibilityControls({ className, ...props }) {
   const [fontSize, setFontSize] = useState(100); // Percentage
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [colorblindFilter, setColorblindFilter] = useState('none');
   const [highContrast, setHighContrast] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
 
   // Load saved settings from localStorage on component mount
   useEffect(() => {
@@ -152,95 +149,124 @@ export function AccessibilityControls({ className, ...props }) {
   return (
     <>
       <div className={cn('fixed bottom-4 right-4 z-50', className)} {...props}>
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="h-10 w-10 p-0" aria-label="Accessibility Controls">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-xs w-full rounded-lg p-4 bg-background border shadow-lg">
-            <DialogTitle className="flex items-center gap-2 text-base font-semibold mb-2">
-              <Settings className="h-4 w-4" /> Accessibility
-            </DialogTitle>
+        {/* FAB Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-10 w-10 p-0"
+          aria-label="Accessibility Controls"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
 
-            {/* Font Size Section */}
-            <div className="flex flex-col gap-2 mb-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Type className="h-3 w-3" />
-                <span>Font: {fontSize}%</span>
-              </div>
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={decreaseFontSize}
-                  disabled={fontSize <= 80}
-                  className="h-6 w-6 p-0 text-xs"
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetFontSize}
-                  className="h-6 w-6 p-0 text-xs"
-                >
-                  <RotateCcw className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={increaseFontSize}
-                  disabled={fontSize >= 150}
-                  className="h-6 w-6 p-0 text-xs"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
+        {/* Simple Popup */}
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
 
-            {/* Vision Filters Section */}
-            <div className="flex flex-col gap-2 mb-2">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Palette className="h-3 w-3" />
-                <span>Vision</span>
+            {/* Popup Content */}
+            <div className="absolute bottom-12 right-0 z-50 w-72 bg-background border rounded-lg shadow-lg p-4">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span className="font-semibold text-sm">Accessibility</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsOpen(false)}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
+
+              {/* Font Size Section */}
+              <div className="flex flex-col gap-2 mb-3">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Type className="h-3 w-3" />
+                  <span>Font: {fontSize}%</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={decreaseFontSize}
+                    disabled={fontSize <= 80}
+                    className="h-7 text-xs flex items-center justify-center"
+                  >
+                    <Minus className="h-3 w-3 inline-block mr-1" />
+                    Decrease
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetFontSize}
+                    className="h-7 text-xs flex items-center justify-center"
+                  >
+                    <RotateCcw className="h-3 w-3 inline-block mr-1" />
+                    Reset
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={increaseFontSize}
+                    disabled={fontSize >= 150}
+                    className="h-7 text-xs flex items-center justify-center"
+                  >
+                    <Plus className="h-3 w-3 inline-block mr-1" />
+                    Increase
+                  </Button>
+                </div>
+              </div>
+
+              {/* Vision Filters Section */}
+              <div className="flex flex-col gap-2 mb-3">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Palette className="h-3 w-3" />
+                  <span>Vision</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  <Button
+                    variant={colorblindFilter !== 'none' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={toggleColorblindFilter}
+                    className="h-7 text-xs flex items-center justify-center"
+                  >
+                    <Eye className="h-3 w-3 inline-block mr-1" />
+                    {getColorblindFilterLabel()}
+                  </Button>
+                  <Button
+                    variant={highContrast ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={toggleHighContrast}
+                    className="h-7 text-xs flex items-center justify-center"
+                  >
+                    <Focus className="h-3 w-3 inline-block mr-1" />
+                    High Contrast
+                  </Button>
+                </div>
+              </div>
+
+              {/* Reset Button */}
               <Button
-                variant={colorblindFilter !== 'none' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={toggleColorblindFilter}
-                className="h-6 text-xs justify-start px-2 cursor-pointer mb-1"
+                onClick={resetAllSettings}
+                className="w-full h-6 text-xs"
               >
-                <Eye className="h-3 w-3 mr-1" />
-                {getColorblindFilterLabel()}
-              </Button>
-              <Button
-                variant={highContrast ? 'default' : 'outline'}
-                size="sm"
-                onClick={toggleHighContrast}
-                className="h-6 text-xs justify-start px-2 mb-1"
-              >
-                <Focus className="h-3 w-3 mr-1" />
-                High Contrast
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset All
               </Button>
             </div>
-
-            {/* Reset Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetAllSettings}
-              className="h-6 text-xs mb-2"
-            >
-              <RotateCcw className="h-3 w-3 mr-1" />
-              Reset All
-            </Button>
-
-            <DialogClose asChild>
-              <Button variant="secondary" size="sm" className="w-full mt-2">Close</Button>
-            </DialogClose>
-          </DialogContent>
-        </Dialog>
+          </>
+        )}
       </div>
 
       {/* CSS Styles for accessibility filters */}
