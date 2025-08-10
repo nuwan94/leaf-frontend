@@ -22,7 +22,7 @@ const App = () => {
           <Routes>
             {/* Dynamic root route - shows appropriate dashboard based on user role */}
             <Route path="/" element={<DynamicHome />} />
-
+            
             {/* Public routes */}
             <Route path="/login" element={<AuthForm />} />
             <Route path="/search" element={<SearchPage />} />
@@ -34,7 +34,7 @@ const App = () => {
               <Route path="/farmer" element={<FarmerHome />} />
               <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
               <Route path="/customer" element={<CustomerHome />} />
-
+              
               {/* Other protected routes */}
               <Route path="/cart" element={<CartPage />} />
               <Route path="/profile" element={<Profile />} />

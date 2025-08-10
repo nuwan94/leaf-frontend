@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/lib/hooks/useCart';
 import { useTranslation } from 'react-i18next';
-import { Minus, Plus, X, Loader2 } from 'lucide-react';
+import { useCurrency } from '@/lib/currency';
+import { Minus, Plus, Loader2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function CartItem({ item, className, ...props }) {
   const { updateCartItem, removeFromCart } = useCart();
   const { t } = useTranslation();
+  const { formatPrice } = useCurrency();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -19,7 +21,7 @@ export function CartItem({ item, className, ...props }) {
     try {
       await updateCartItem(item.id, newQuantity);
     } catch (error) {
-      console.error('Failed to update quantity:', error);
+      console.error(t('failedToUpdateQuantity'), error);
     } finally {
       setIsUpdating(false);
     }
@@ -30,125 +32,122 @@ export function CartItem({ item, className, ...props }) {
     try {
       await removeFromCart(item.id);
     } catch (error) {
-      console.error('Failed to remove item:', error);
+      console.error(t('failedToRemoveItem'), error);
       setIsRemoving(false);
     }
   };
 
-  const incrementQuantity = () => handleQuantityChange(item.quantity + 1);
-  const decrementQuantity = () => {
+  const decrementQuantity = async () => {
     if (item.quantity > 1) {
-      handleQuantityChange(item.quantity - 1);
+      await handleQuantityChange(item.quantity - 1);
     }
   };
 
-  // Calculate item total
-  const itemTotal = (parseFloat(item.price) * item.quantity).toFixed(2);
+  const incrementQuantity = async () => {
+    await handleQuantityChange(item.quantity + 1);
+  };
+
+  const itemTotal = parseFloat(item.price) * item.quantity;
 
   return (
-    <div className={cn("flex gap-3 p-3 border rounded-lg", className)} {...props}>
+    <div className={cn("flex gap-4 p-4 rounded-lg transition-all duration-200", className)} {...props}>
       {/* Product Image */}
-      <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0 overflow-hidden">
+      <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600">
         {item.image_url || item.product?.image ? (
           <img
             src={item.image_url || item.product?.image}
             alt={item.name || item.product?.name}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">
+          <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs font-medium">
             {t('noImage')}
           </div>
         )}
       </div>
 
       {/* Product Details */}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-start mb-1">
-          <h4 className="text-sm font-medium truncate pr-2">
-            {item.name || item.product?.name}
-          </h4>
+      <div className="flex-1 min-w-0 space-y-3">
+        {/* Header with name and remove button */}
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
+              {item.name || item.product?.name}
+            </h4>
+            {item.description && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                {item.description}
+              </p>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleRemove}
             disabled={isRemoving}
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-            aria-label={t('removeFromCart')}
+            className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-full flex-shrink-0 transition-colors"
+            title={t('removeFromCart')}
           >
             {isRemoving ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <X className="h-3 w-3" />
+              <Trash2 className="h-4 w-4" />
             )}
           </Button>
         </div>
 
-        {/* Product metadata */}
-        <div className="text-xs text-muted-foreground mb-2">
-          {item.brand && (
-            <div>{t('by')} {item.brand}</div>
-          )}
-          {item.unit && (
-            <div>{t('per')} {item.unit}</div>
-          )}
-        </div>
-
-        {/* Price and Quantity Controls */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium">
-            ${parseFloat(item.price).toFixed(2)}
-            {item.quantity > 1 && (
-              <span className="text-xs text-muted-foreground ml-1">
-                × {item.quantity}
-              </span>
-            )}
+        {/* Price and quantity controls */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              {formatPrice(itemTotal)}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {formatPrice(parseFloat(item.price))} {t('each')}
+            </div>
           </div>
 
           {/* Quantity Controls */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-1">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={decrementQuantity}
               disabled={isUpdating || item.quantity <= 1}
-              className="h-6 w-6 p-0"
+              className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md disabled:opacity-50"
             >
               <Minus className="h-3 w-3" />
             </Button>
 
-            <div className="w-12 px-1">
+            <div className="min-w-[3rem] text-center">
               <Input
                 type="number"
                 value={item.quantity}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value);
-                  if (value >= 1) {
-                    handleQuantityChange(value);
-                  }
-                }}
+                onChange={(e) => handleQuantityChange(Number(e.target.value))}
                 disabled={isUpdating}
-                className="h-6 text-center text-xs border-0 bg-transparent"
+                className="h-8 w-12 text-center border-0 bg-transparent text-sm font-medium focus:ring-0 focus:outline-none p-0"
                 min="1"
               />
             </div>
 
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={incrementQuantity}
               disabled={isUpdating}
-              className="h-6 w-6 p-0"
+              className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
             >
               <Plus className="h-3 w-3" />
             </Button>
           </div>
         </div>
 
-        {/* Item Total */}
-        {item.quantity > 1 && (
-          <div className="text-right text-sm font-medium mt-1">
-            ${itemTotal}
+        {/* Loading state overlay */}
+        {isUpdating && (
+          <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            {t('updating')}
           </div>
         )}
       </div>

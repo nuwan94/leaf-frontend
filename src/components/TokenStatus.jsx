@@ -4,9 +4,11 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { getTokenExpiration, getTokenTimeRemaining, isTokenExpired } from '@/lib/token-utils';
 import { Clock, RefreshCw, LogOut, CheckCircle, AlertTriangle, Shield, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export function TokenStatus({ className, ...props }) {
   const { user, logout, refreshToken } = useAuth();
+  const { t } = useTranslation();
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [tokenExpiration, setTokenExpiration] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -86,7 +88,7 @@ export function TokenStatus({ className, ...props }) {
       <Button
         variant={getFabVariant()}
         size="sm"
-        className={cn("h-10 w-10 p-0", getFabClasses())}
+        className={cn('h-10 w-10 p-0', getFabClasses())}
         aria-label="Token Status"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -97,10 +99,7 @@ export function TokenStatus({ className, ...props }) {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
           {/* Popup Content */}
           <div className="absolute bottom-12 left-0 z-50 w-80 bg-background border rounded-lg shadow-lg p-4">
@@ -129,14 +128,12 @@ export function TokenStatus({ className, ...props }) {
               ) : (
                 <CheckCircle className="h-4 w-4 text-green-500" />
               )}
-              <span className={`text-sm font-medium ${
-                expired ? 'text-destructive' : 
-                nearExpiry ? 'text-yellow-600' : 
-                'text-green-600'
-              }`}>
-                {expired ? 'Token Expired' :
-                 nearExpiry ? 'Token Expiring Soon' :
-                 'Token Valid'}
+              <span
+                className={`text-sm font-medium ${
+                  expired ? 'text-destructive' : nearExpiry ? 'text-yellow-600' : 'text-green-600'
+                }`}
+              >
+                {expired ? 'Token Expired' : nearExpiry ? 'Token Expiring Soon' : 'Token Valid'}
               </span>
             </div>
 
@@ -145,16 +142,16 @@ export function TokenStatus({ className, ...props }) {
               {tokenExpiration && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Expires:</span>
-                  <span className="font-mono text-right">
-                    {tokenExpiration.toLocaleString()}
-                  </span>
+                  <span className="font-mono text-right">{tokenExpiration.toLocaleString()}</span>
                 </div>
               )}
 
               {!expired && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Time left:</span>
-                  <span className={`font-mono ${nearExpiry ? 'text-yellow-600 font-semibold' : ''}`}>
+                  <span
+                    className={`font-mono ${nearExpiry ? 'text-yellow-600 font-semibold' : ''}`}
+                  >
                     {formatTime(timeRemaining)}
                   </span>
                 </div>
@@ -197,7 +194,7 @@ export function TokenStatus({ className, ...props }) {
                 className="w-full h-7 text-xs"
               >
                 <LogOut className="h-3 w-3 mr-2" />
-                Logout
+                {t('logout')}
               </Button>
             </div>
           </div>

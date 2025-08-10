@@ -54,10 +54,10 @@ class ProductService {
    * @returns {Promise} API response with filtered products
    */
   async getProductsByPriceRange(minPrice, maxPrice, additionalParams = {}) {
-    return this.getProducts({
-      min_price: minPrice,
-      max_price: maxPrice,
-      ...additionalParams
+    return this.getProducts({ 
+      min_price: minPrice, 
+      max_price: maxPrice, 
+      ...additionalParams 
     });
   }
 

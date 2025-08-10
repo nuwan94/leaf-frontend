@@ -13,6 +13,8 @@ import { SignupForm } from '@/components/signup-form-component';
 import { AuthBackground } from '@/components/auth-background';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { authService } from '@/lib/services';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -40,6 +42,7 @@ export function AuthForm({ className, ...props }) {
   const [showPassword, setShowPassword] = useState(false);
   const { t } = useTranslation();
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   // Setup forms
   const loginForm = useForm({
@@ -77,8 +80,13 @@ export function AuthForm({ className, ...props }) {
 
         console.log('Login successful:', user);
 
-        // Redirect to home - DynamicHome component will handle role-based routing
-        window.location.href = '/';
+        // Only redirect on successful login
+        if (user) {
+          console.log('Login successful, user logged in:', user);
+
+          // Direct redirect without showing success screen
+          navigate('/');
+        }
       } else {
         // Handle signup (keeping existing logic for now)
         const response = await authService.register({
@@ -114,8 +122,8 @@ export function AuthForm({ className, ...props }) {
 
           localStorage.setItem('user', JSON.stringify(user));
 
-          // Redirect to home - DynamicHome component will handle role-based routing
-          window.location.href = '/';
+          // Only redirect on successful registration
+          navigate('/');
         } else {
           // If email verification is required, show success message
           alert(t('registrationSuccessful'));
@@ -127,23 +135,44 @@ export function AuthForm({ className, ...props }) {
 
       // Handle specific error cases
       if (error.response?.status === 401) {
-        currentForm.setError('email', {
-          type: 'manual',
-          message: 'invalidCredentials'
-        });
+        // For login attempts with invalid credentials
+        if (mode === 'login') {
+          currentForm.setError('root', {
+            type: 'manual',
+            message: t('invalidCredentials') || 'Invalid email or password. Please try again.'
+          });
+        } else {
+          currentForm.setError('email', {
+            type: 'manual',
+            message: 'invalidCredentials'
+          });
+        }
       } else if (error.response?.status === 409) {
         currentForm.setError('email', {
           type: 'manual',
           message: 'emailAlreadyExists'
         });
+      } else if (error.response?.status === 422) {
+        // Handle validation errors from server
+        const validationErrors = error.response?.data?.errors;
+        if (validationErrors) {
+          Object.keys(validationErrors).forEach(field => {
+            currentForm.setError(field, {
+              type: 'manual',
+              message: validationErrors[field][0]
+            });
+          });
+        }
       } else {
         // General error handling
-        const errorMessage = error.response?.data?.message || 'authenticationFailed';
+        const errorMessage = error.response?.data?.message || error.message || 'authenticationFailed';
         currentForm.setError('root', {
           type: 'manual',
           message: errorMessage
         });
       }
+
+      // Do NOT redirect on error - stay on login page to show errors
     }
   };
 

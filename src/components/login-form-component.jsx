@@ -67,6 +67,13 @@ export function LoginForm({
         )}
       </div>
 
+      {/* Display root-level errors (like invalid credentials) */}
+      {form.formState.errors.root && (
+        <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+          {form.formState.errors.root.message}
+        </div>
+      )}
+
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? (
           <>

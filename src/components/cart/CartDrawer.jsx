@@ -36,7 +36,7 @@ export function CartDrawer({ children, className, ...props }) {
       <DialogTrigger asChild>
         {children || <CartIcon />}
       </DialogTrigger>
-
+      
       <DialogContent className={cn("max-w-md w-full h-[80vh] flex flex-col p-0", className)} {...props}>
         <DialogHeader className="p-4 pb-2 border-b">
           <DialogTitle className="flex items-center gap-2">
@@ -106,27 +106,27 @@ export function CartDrawer({ children, className, ...props }) {
 
               {/* Action Buttons */}
               <div className="space-y-2">
-                <Button
-                  onClick={handleCheckout}
-                  className="w-full"
+                <Button 
+                  onClick={handleCheckout} 
+                  className="w-full" 
                   size="lg"
                   disabled={itemCount === 0}
                 >
                   {t('proceedToCheckout')}
                 </Button>
-
+                
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
                     onClick={() => setIsOpen(false)}
                     className="flex-1"
                     size="sm"
                   >
                     {t('continueShopping')}
                   </Button>
-
-                  <Button
-                    variant="outline"
+                  
+                  <Button 
+                    variant="outline" 
                     onClick={handleClearCart}
                     disabled={itemCount === 0}
                     size="sm"

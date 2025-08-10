@@ -37,18 +37,9 @@ export default function SearchPage() {
           </div>
         </div>
 
-        {/* Product Catalog with Search Integration */}
+        {/* Product Catalog */}
         <ProductCatalog
-          initialFilters={{
-            name: initialQuery,
-            // Pass any other URL params as initial filters
-            category_id: searchParams.get('category') || '',
-            brand: searchParams.get('brand') || '',
-            min_price: searchParams.get('min_price') || '',
-            max_price: searchParams.get('max_price') || '',
-            sort_by: searchParams.get('sort_by') || 'name',
-            sort_order: searchParams.get('sort_order') || 'asc'
-          }}
+          filters={{ name: initialQuery }}
         />
       </div>
     </TopNavLayout>

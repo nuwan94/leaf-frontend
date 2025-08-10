@@ -93,59 +93,54 @@ export function ProductCard({ product, className, ...props }) {
           </div>
         )}
 
-        {/* Floating Controls - Always show when in cart or on hover */}
-        {(inCart || isHovered || isAdding) && (product.stock_quantity || product.stock) > 0 && (
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-200 z-10">
-            {!inCart ? (
-              /* Add to Cart Button */
+        {/* Add to Cart Button - Bottom Right Corner */}
+        {!inCart && (product.stock_quantity || product.stock) > 0 && (
+          <div className="absolute bottom-2 right-2">
+            <Button
+              onClick={handleAddToCart}
+              disabled={isAdding || isLoading}
+              className="bg-white/90 hover:bg-white text-black border-0 shadow-lg transition-all duration-200 hover:scale-105 rounded-full"
+              size="sm"
+            >
+              {isAdding ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black" />
+              ) : (
+                <ShoppingCart className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        )}
+
+        {/* Quantity Controls - Bottom Right Corner */}
+        {inCart && (product.stock_quantity || product.stock) > 0 && (
+          <div className="absolute bottom-2 right-2">
+            <div className="flex items-center gap-1 bg-white/90 rounded-full p-1 shadow-lg">
               <Button
-                onClick={handleAddToCart}
-                disabled={isAdding || isLoading}
-                className="bg-white/90 hover:bg-white text-black border-0 shadow-lg transition-all duration-200 hover:scale-105"
+                onClick={decrementQuantity}
+                disabled={isLoading}
                 size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0 hover:bg-gray-200 text-black rounded-full"
               >
-                {isAdding ? (
-                  <>
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-black mr-2" />
-                    {t('adding') || 'Adding...'}
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    {t('addToCart') || 'Add to Cart'}
-                  </>
-                )}
+                <Minus className="h-3 w-3" />
               </Button>
-            ) : (
-              /* Quantity Controls */
-              <div className="flex items-center gap-2 bg-white/90 rounded-lg p-1 shadow-lg">
-                <Button
-                  onClick={decrementQuantity}
-                  disabled={isLoading}
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0 hover:bg-gray-200 text-black"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
 
-                <div className="flex items-center justify-center min-w-[2rem] px-2">
-                  <span className="text-sm font-medium text-black">
-                    {cartItem?.quantity || 0}
-                  </span>
-                </div>
-
-                <Button
-                  onClick={incrementQuantity}
-                  disabled={isLoading}
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0 hover:bg-gray-200 text-black"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center justify-center min-w-[1.5rem] px-1">
+                <span className="text-xs font-medium text-black">
+                  {cartItem?.quantity || 0}
+                </span>
               </div>
-            )}
+
+              <Button
+                onClick={incrementQuantity}
+                disabled={isLoading}
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0 hover:bg-gray-200 text-black rounded-full"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         )}
 

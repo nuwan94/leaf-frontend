@@ -7,7 +7,7 @@
  */
 export const isTokenExpired = (token) => {
   if (!token) return true;
-
+  
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     const currentTime = Date.now() / 1000;
@@ -25,7 +25,7 @@ export const isTokenExpired = (token) => {
  */
 export const getTokenExpiration = (token) => {
   if (!token) return null;
-
+  
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return new Date(payload.exp * 1000);
@@ -42,7 +42,7 @@ export const getTokenExpiration = (token) => {
  */
 export const getTokenTimeRemaining = (token) => {
   if (!token) return 0;
-
+  
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     const currentTime = Date.now() / 1000;
@@ -62,15 +62,15 @@ export const getCurrentUser = () => {
   try {
     const userData = localStorage.getItem('user');
     if (!userData) return null;
-
+    
     const user = JSON.parse(userData);
-
+    
     // Check if access token is expired
     if (isTokenExpired(user.token)) {
       console.warn('Access token is expired');
       return user; // Return user anyway - refresh mechanism will handle it
     }
-
+    
     return user;
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -95,15 +95,15 @@ export const clearUserSession = () => {
  */
 export const setupTokenRefresh = (token, refreshCallback) => {
   const timeRemaining = getTokenTimeRemaining(token);
-
+  
   // Refresh token 5 minutes before expiration (300 seconds)
   const refreshTime = Math.max(0, (timeRemaining - 300) * 1000);
-
+  
   if (refreshTime > 0) {
     console.log(`Token will be refreshed in ${refreshTime / 1000} seconds`);
     return setTimeout(refreshCallback, refreshTime);
   }
-
+  
   return null;
 };
 

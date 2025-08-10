@@ -21,6 +21,17 @@ import {
   X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
 
 const roleMenus = {
   admin: [
@@ -48,6 +59,7 @@ const roleMenus = {
 
 export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { logout } = useAuth();
@@ -124,13 +136,34 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
               <LangSelector />
               <DarkModeSwitcher />
             </div>
-            <Button
-              onClick={handleLogout}
-              className="w-full justify-start bg-red-600 hover:bg-red-700 text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+            <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  onClick={() => setLogoutDialogOpen(true)}
+                  className="w-full justify-start bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t('logout')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('logoutConfirmation')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('logoutRedirect')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      await handleLogout();
+                      setLogoutDialogOpen(false);
+                    }}
+                  >
+                    {t('logout')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>

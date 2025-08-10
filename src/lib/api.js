@@ -57,8 +57,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle token expiration (401 Unauthorized)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip token refresh for login/register endpoints
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+                          originalRequest.url?.includes('/auth/register');
+
+    // Handle token expiration (401 Unauthorized) - but skip for auth endpoints
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         // If token refresh is already in progress, queue the request
         return new Promise((resolve, reject) => {
@@ -124,27 +128,7 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle other HTTP errors
-    if (error.response) {
-      switch (error.response.status) {
-        case 403:
-          console.error('Access forbidden:', error.response.data.message);
-          break;
-        case 404:
-          console.error('Resource not found:', error.response.data.message);
-          break;
-        case 500:
-          console.error('Server error:', error.response.data.message);
-          break;
-        default:
-          console.error('API Error:', error.response.data.message || error.message);
-      }
-    } else if (error.request) {
-      console.error('Network error:', error.message);
-    } else {
-      console.error('Error:', error.message);
-    }
-
+    // For all other errors or auth endpoint errors, just reject
     return Promise.reject(error);
   }
 );
