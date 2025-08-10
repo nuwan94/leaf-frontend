@@ -6,6 +6,7 @@ import { customerService } from '@/lib/services';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import banner1 from '@/assets/banner1.jpg';
 
 export default function CustomerDashboard() {
   const { t } = useTranslation();
@@ -34,31 +35,60 @@ export default function CustomerDashboard() {
   return (
     <TopNavLayout>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950">
-        <div className="container mx-auto px-4 py-12">
+      <div
+        className="relative bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 overflow-hidden"
+        style={{
+          backgroundImage: `url(${banner1})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/40 dark:bg-black/60"></div>
+
+        <div className="relative container mx-auto px-4 py-12">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold mb-4">Fresh Produce Market</h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Fresh Produce Market</h1>
+            <p className="text-lg text-white/90 mb-8 drop-shadow-md">
               Discover the freshest fruits, vegetables, and farm products directly from local farmers
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 onClick={() => navigate('/search')}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-100 shadow-lg"
               >
                 <Sparkles className="h-5 w-5" />
                 Browse All Products
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => navigate('/search?category=1')}
-              >
-                Shop by Category
-              </Button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Categories Section */}
+      <div className="bg-muted/50 py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold text-center mb-8">Shop by Category</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: 'Vegetables', id: 1, emoji: '🥬' },
+              { name: 'Fruits', id: 2, emoji: '🍎' },
+              { name: 'Grains', id: 3, emoji: '🌾' },
+              { name: 'Dairy', id: 4, emoji: '🥛' }
+            ].map((category) => (
+              <Button
+                key={category.id}
+                variant="outline"
+                className="h-24 flex-col gap-2 bg-background hover:bg-accent"
+                onClick={() => navigate(`/search?category=${category.id}`)}
+              >
+                <span className="text-2xl">{category.emoji}</span>
+                <span className="font-medium">{category.name}</span>
+              </Button>
+            ))}
           </div>
         </div>
       </div>
@@ -110,31 +140,6 @@ export default function CustomerDashboard() {
             </Button>
           </div>
         )}
-      </div>
-
-      {/* Categories Section */}
-      <div className="bg-muted/50 py-12">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-8">Shop by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { name: 'Vegetables', id: 1, emoji: '🥬' },
-              { name: 'Fruits', id: 2, emoji: '🍎' },
-              { name: 'Grains', id: 3, emoji: '🌾' },
-              { name: 'Dairy', id: 4, emoji: '🥛' }
-            ].map((category) => (
-              <Button
-                key={category.id}
-                variant="outline"
-                className="h-24 flex-col gap-2 bg-background hover:bg-accent"
-                onClick={() => navigate(`/search?category=${category.id}`)}
-              >
-                <span className="text-2xl">{category.emoji}</span>
-                <span className="font-medium">{category.name}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
       </div>
     </TopNavLayout>
   );

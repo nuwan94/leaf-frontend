@@ -1,52 +1,30 @@
 import api from '@/lib/api';
 
-// User profile and management API endpoints
+// User profile API endpoints matching the backend specifications
 export const userService = {
-  // Get current user profile
+  // Get current user profile - GET /api/profile
   getProfile: async () => {
-    const response = await api.get('/user/profile');
+    const response = await api.get('/profile');
     return response.data;
   },
 
-  // Update user profile
+  // Update user profile - PUT /api/profile
   updateProfile: async (profileData) => {
-    const response = await api.put('/user/profile', profileData);
+    const response = await api.put('/profile', profileData);
     return response.data;
   },
 
-  // Upload profile picture
-  uploadAvatar: async (file) => {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    const response = await api.post('/user/avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  },
-
-  // Change password
+  // Change password - POST /api/profile/change-password
   changePassword: async (passwordData) => {
-    const response = await api.put('/user/change-password', passwordData);
+    const response = await api.post('/profile/change-password', passwordData);
     return response.data;
   },
 
-  // Get user preferences
-  getPreferences: async () => {
-    const response = await api.get('/user/preferences');
-    return response.data;
-  },
-
-  // Update user preferences
-  updatePreferences: async (preferences) => {
-    const response = await api.put('/user/preferences', preferences);
-    return response.data;
-  },
-
-  // Delete user account
-  deleteAccount: async () => {
-    const response = await api.delete('/user/account');
+  // Delete/Deactivate account - DELETE /api/profile
+  deleteAccount: async (password) => {
+    const response = await api.delete('/profile', {
+      data: { password }
+    });
     return response.data;
   },
 };
