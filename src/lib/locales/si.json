@@ -145,6 +145,10 @@
   "each": "එකක්",
   "removeFromCart": "කරත්තයෙන් ඉවත් කරන්න",
   "updating": "යාවත්කාලීන කරමින්...",
-  "itemTotal": "{{total}}"
+  "itemTotal": "{{total}}",
+  "loginRequired": "ප්‍රවේශ වීම අවශ්‍යයි",
+  "loginRequiredToAccessCart": "ඔබේ කරත්තයට ප්‍රවේශ වීමට ප්‍රවේශ වීම අවශ්‍යයි.",
+  "loginRequiredToAddToCart": "කරත්තයට භාණ්ඩ එකතු කිරීමට ප්‍රවේශ වීම අවශ්‍යයි.",
+  "inCart": "කරත්තයේ",
+  "inStock": "ස්ටොක් තිබේ"
 }
-

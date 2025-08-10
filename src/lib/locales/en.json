@@ -145,5 +145,10 @@
   "each": "each",
   "removeFromCart": "Remove from cart",
   "updating": "Updating...",
-  "itemTotal": "{{total}}"
+  "itemTotal": "{{total}}",
+  "loginRequired": "Login Required",
+  "loginRequiredToAccessCart": "You need to login to access your cart.",
+  "loginRequiredToAddToCart": "You need to login to add items to your cart.",
+  "inCart": "In Cart",
+  "inStock": "In Stock"
 }

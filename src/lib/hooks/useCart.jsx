@@ -18,11 +18,6 @@ export function CartProvider({ children }) {
 
   // Load cart from localStorage
   const loadCartFromStorage = () => {
-    if (!isAuthenticated && !user) {
-      setCart({ items: [], total: 0, subtotal: 0, tax: 0, shipping: 0 });
-      return;
-    }
-
     try {
       const cartKey = getCartKey();
       const savedCart = localStorage.getItem(cartKey);
@@ -92,7 +87,7 @@ export function CartProvider({ children }) {
 
   // Add item to cart
   const addToCart = async (productId, quantity = 1, productData = null) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       throw new Error('Please login to add items to cart');
     }
 
@@ -133,7 +128,10 @@ export function CartProvider({ children }) {
 
   // Update cart item quantity
   const updateCartItem = async (itemId, quantity) => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user) {
+      console.error('User not authenticated for cart update');
+      return;
+    }
 
     if (quantity <= 0) {
       return removeFromCart(itemId);
@@ -161,7 +159,10 @@ export function CartProvider({ children }) {
 
   // Remove item from cart
   const removeFromCart = async (itemId) => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user) {
+      console.error('User not authenticated for cart removal');
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -180,7 +181,10 @@ export function CartProvider({ children }) {
 
   // Clear entire cart
   const clearCart = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user) {
+      console.error('User not authenticated for cart clearing');
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -200,35 +204,28 @@ export function CartProvider({ children }) {
 
   // Get cart item count
   const getCartItemCount = () => {
-    if (!cart?.items) return 0;
     return cart.items.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  // Get cart total price
-  const getCartTotal = () => {
-    return cart?.total || 0;
   };
 
   // Check if product is in cart
   const isInCart = (productId) => {
-    if (!cart?.items) return false;
     return cart.items.some(item => item.product_id === productId);
   };
 
-  // Get cart item by product ID
+  // Get specific cart item
   const getCartItem = (productId) => {
-    if (!cart?.items) return null;
-    return cart.items.find(item => item.product_id === productId) || null;
+    return cart.items.find(item => item.product_id === productId);
   };
 
-  // Load cart on mount and when user changes
+  // Load cart when authentication state changes
   useEffect(() => {
     if (isAuthenticated && user) {
       loadCartFromStorage();
     } else {
+      // Clear cart when user logs out
       setCart({ items: [], total: 0, subtotal: 0, tax: 0, shipping: 0 });
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.id]);
 
   const value = {
     cart,
@@ -240,7 +237,6 @@ export function CartProvider({ children }) {
     clearCart,
     fetchCart,
     getCartItemCount,
-    getCartTotal,
     isInCart,
     getCartItem,
   };

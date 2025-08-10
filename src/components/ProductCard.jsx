@@ -2,22 +2,42 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/lib/hooks/useCart';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '@/lib/currency';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Plus, Minus, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export function ProductCard({ product, className, ...props }) {
   const { addToCart, updateCartItem, removeFromCart, isInCart, getCartItem, isLoading } = useCart();
+  const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
+  const navigate = useNavigate();
   const [isAdding, setIsAdding] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
 
   const cartItem = getCartItem(product.id);
   const inCart = isInCart(product.id);
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      setShowAlert(true);
+      return;
+    }
+
     setIsAdding(true);
     try {
       // Pass product data to cart for local storage
@@ -36,6 +56,11 @@ export function ProductCard({ product, className, ...props }) {
   };
 
   const handleUpdateQuantity = async (newQuantity) => {
+    if (!isAuthenticated) {
+      setShowAlert(true);
+      return;
+    }
+
     if (!cartItem) return;
 
     try {
@@ -46,6 +71,11 @@ export function ProductCard({ product, className, ...props }) {
   };
 
   const handleRemoveFromCart = async () => {
+    if (!isAuthenticated) {
+      setShowAlert(true);
+      return;
+    }
+
     if (!cartItem) return;
 
     try {
@@ -72,115 +102,146 @@ export function ProductCard({ product, className, ...props }) {
     }
   };
 
+  const handleLoginRedirect = () => {
+    setShowAlert(false);
+    navigate('/auth/login');
+  };
+
   return (
-    <Card
-      className={cn("overflow-hidden h-fit group", className)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      {...props}
-    >
-      {/* Product Image with Floating Controls */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <ShoppingCart className="h-8 w-8" />
-          </div>
-        )}
+    <>
+      <Card
+        className={cn("overflow-hidden h-fit group", className)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        {...props}
+      >
+        {/* Product Image with Floating Controls */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <ShoppingCart className="h-8 w-8" />
+            </div>
+          )}
 
-        {/* Add to Cart Button - Bottom Right Corner */}
-        {!inCart && (product.stock_quantity || product.stock) > 0 && (
-          <div className="absolute bottom-2 right-2">
-            <Button
-              onClick={handleAddToCart}
-              disabled={isAdding || isLoading}
-              className="bg-white/90 hover:bg-white text-black border-0 shadow-lg transition-all duration-200 hover:scale-105 rounded-full"
-              size="sm"
-            >
-              {isAdding ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black" />
-              ) : (
-                <ShoppingCart className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        )}
+          {/* Add to Cart Button - Bottom Right Corner */}
+          {(!inCart || !isAuthenticated) && (product.stock_quantity || product.stock) > 0 && (
+            <div className="absolute bottom-2 right-2">
+              <Button
+                onClick={handleAddToCart}
+                disabled={isAdding || isLoading}
+                size="sm"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-full shadow-lg transition-all duration-200",
+                  "bg-primary hover:bg-primary/90 text-primary-foreground",
+                  "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0",
+                  isHovered && "opacity-100 translate-y-0"
+                )}
+              >
+                {isAdding ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                ) : (
+                  <ShoppingCart className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          )}
 
-        {/* Quantity Controls - Bottom Right Corner */}
-        {inCart && (product.stock_quantity || product.stock) > 0 && (
-          <div className="absolute bottom-2 right-2">
-            <div className="flex items-center gap-1 bg-white/90 rounded-full p-1 shadow-lg">
+          {/* Quantity Controls - Bottom Right Corner (when in cart and authenticated) */}
+          {inCart && isAuthenticated && (
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-full p-1 shadow-lg">
               <Button
                 onClick={decrementQuantity}
-                disabled={isLoading}
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 hover:bg-gray-200 text-black rounded-full"
+                className="h-6 w-6 p-0 rounded-full hover:bg-muted"
               >
                 <Minus className="h-3 w-3" />
               </Button>
-
-              <div className="flex items-center justify-center min-w-[1.5rem] px-1">
-                <span className="text-xs font-medium text-black">
-                  {cartItem?.quantity || 0}
-                </span>
-              </div>
-
+              <span className="text-sm font-medium px-2 min-w-[1.5rem] text-center">
+                {cartItem?.quantity || 0}
+              </span>
               <Button
                 onClick={incrementQuantity}
-                disabled={isLoading}
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 hover:bg-gray-200 text-black rounded-full"
+                className="h-6 w-6 p-0 rounded-full hover:bg-muted"
               >
                 <Plus className="h-3 w-3" />
               </Button>
             </div>
-          </div>
-        )}
-
-        {/* Out of Stock Overlay */}
-        {(product.stock_quantity || product.stock) === 0 && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium">
-              {t('outOfStock') || 'Out of Stock'}
-            </div>
-          </div>
-        )}
-
-        {/* In Cart Indicator - Top Right Corner */}
-        {inCart && (
-          <div className="absolute top-2 right-2 bg-green-600 text-white rounded-full p-1">
-            <Check className="h-3 w-3" />
-          </div>
-        )}
-      </div>
-
-      <CardContent className="p-3">
-        {/* Product Name */}
-        <h3 className="font-medium text-sm mb-3 line-clamp-2 leading-tight text-gray-800 dark:text-gray-100">
-          {product.name}
-        </h3>
-
-        {/* Price Only - Localized */}
-        <div className="flex items-center justify-center mb-1">
-          <span className="font-bold text-primary text-xl tracking-tight">
-            {formatPrice(product.price)}
-          </span>
+          )}
         </div>
 
-        {/* Out of Stock Warning */}
-        {(product.stock_quantity || product.stock) === 0 && (
-          <div className="text-xs text-red-500 text-center mt-2 font-medium">
-            {t('outOfStock')}
+        {/* Product Info */}
+        <CardContent className="p-3 space-y-2">
+          <div>
+            <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem]">
+              {product.name}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              {product.brand && `${product.brand} • `}
+              {product.unit || 'per item'}
+            </p>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="font-semibold text-sm">
+                {formatPrice(product.price)}
+              </p>
+              {product.original_price && product.original_price > product.price && (
+                <p className="text-xs text-muted-foreground line-through">
+                  {formatPrice(product.original_price)}
+                </p>
+              )}
+            </div>
+
+            {/* Stock Status */}
+            <div className="text-right">
+              {(product.stock_quantity || product.stock) > 0 ? (
+                <div className="flex items-center gap-1">
+                  {inCart && isAuthenticated ? (
+                    <div className="flex items-center gap-1 text-xs text-green-600">
+                      <Check className="h-3 w-3" />
+                      <span>{t('inCart')}</span>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-green-600">
+                      {t('inStock')}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-red-600">{t('outOfStock')}</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Login Required Alert */}
+      <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('loginRequired')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('loginRequiredToAddToCart')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLoginRedirect}>
+              {t('login')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

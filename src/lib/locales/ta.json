@@ -145,5 +145,10 @@
   "each": "ஒவ்வொன்றும்",
   "removeFromCart": "வண்டியிலிருந்து அகற்றவும்",
   "updating": "புதுப்பிக்கிறது...",
-  "itemTotal": "{{total}}"
+  "itemTotal": "{{total}}",
+  "loginRequired": "உள்நுழைவு தேவை",
+  "loginRequiredToAccessCart": "உங்கள் வண்டியை அணுக உள்நுழைய வேண்டும்.",
+  "loginRequiredToAddToCart": "வண்டியில் பொருட்களைச் சேர்க்க உள்நுழைய வேண்டும்.",
+  "inCart": "வண்டியில்",
+  "inStock": "கையிருப்பில்"
 }
