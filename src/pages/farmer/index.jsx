@@ -104,7 +104,7 @@ export default function FarmerHome() {
         </TabsContent>
 
         <TabsContent value="products" className="space-y-6">
-          <ProductCatalog />
+          <ProductCatalog products={sampleProducts} />
         </TabsContent>
       </Tabs>
     </SidebarLayout>

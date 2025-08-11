@@ -6,12 +6,14 @@ import { DynamicHome } from '@/components/DynamicHome';
 import AdminHome from '@/pages/admin';
 import CustomerHome from '@/pages/customer';
 import FarmerHome from '@/pages/farmer';
+import FarmDetails from '@/pages/farmer/farm-details';
 import DeliveryAgentHome from '@/pages/delivery-agent';
 import CartPage from '@/pages/cart';
 import SearchPage from '@/pages/search';
 import Profile from '@/pages/profile';
 import { TokenStatus } from '@/components/TokenStatus.jsx';
 import { CartProvider } from '@/lib/hooks/useCart.jsx';
+import { Toaster } from '@/components/ui/sonner';
 
 const App = () => {
   return (
@@ -22,7 +24,7 @@ const App = () => {
           <Routes>
             {/* Dynamic root route - shows appropriate dashboard based on user role */}
             <Route path="/" element={<DynamicHome />} />
-            
+
             {/* Public routes */}
             <Route path="/login" element={<AuthForm />} />
             <Route path="/search" element={<SearchPage />} />
@@ -32,9 +34,10 @@ const App = () => {
               {/* Specific role routes (alternative access paths) */}
               <Route path="/admin" element={<AdminHome />} />
               <Route path="/farmer" element={<FarmerHome />} />
+              <Route path="/farmer/farm-details" element={<FarmDetails />} />
               <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
               <Route path="/customer" element={<CustomerHome />} />
-              
+
               {/* Other protected routes */}
               <Route path="/cart" element={<CartPage />} />
               <Route path="/profile" element={<Profile />} />
@@ -45,6 +48,7 @@ const App = () => {
           </Routes>
         </div>
         <AccessibilityControls />
+        <Toaster richColors closeButton  position="top-right" />
       </div>
     </CartProvider>
   );

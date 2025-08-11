@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LangSelector } from '@/components/lang-selector';
@@ -19,6 +19,7 @@ import {
   UserCheck,
   Users,
   X,
+  Tractor,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -44,6 +45,7 @@ const roleMenus = {
   ],
   farmer: [
     { icon: Home, label: 'Dashboard', href: '/' },
+    { icon: Tractor, label: 'Farm Details', href: '/farmer/farm-details' },
     { icon: Package, label: 'My Products', href: '/farmer/products' },
     { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' },
     { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics' },
@@ -61,6 +63,7 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const { logout } = useAuth();
   const menuItems = roleMenus[role] || roleMenus.admin;
@@ -74,6 +77,11 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
       // Still navigate to login even if logout API fails
       navigate('/login');
     }
+  };
+
+  const handleMenuItemClick = (href) => {
+    navigate(href);
+    setSidebarOpen(false); // Close mobile sidebar after navigation
   };
 
   return (
@@ -119,14 +127,19 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto min-h-0">
             {menuItems.map((item) => (
-              <a
+              <button
                 key={item.href}
-                href={item.href}
-                className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
+                onClick={() => handleMenuItemClick(item.href)}
+                className={cn(
+                  "w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-left",
+                  location.pathname === item.href
+                    ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                )}
               >
                 <item.icon className="mr-3 h-5 w-5" />
                 {item.label}
-              </a>
+              </button>
             ))}
           </nav>
 
