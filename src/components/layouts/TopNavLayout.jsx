@@ -237,7 +237,7 @@ export default function TopNavLayout({ children, className }) {
                         <AlertDialogDescription>{t('logoutRedirect')}</AlertDialogDescription>
                         <AlertDialogFooter>
                           <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                          <AlertDialogAction onClick={logout}>{t('logout')}</AlertDialogAction>
+                          <AlertDialogAction variant='destructive' onClick={logout}>{t('logout')}</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogHeader>
                     </AlertDialogContent>

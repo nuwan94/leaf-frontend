@@ -119,7 +119,7 @@ export function CartItem({ item, className, ...props }) {
             >
               <Minus className="h-3 w-3" />
             </Button>
-
+            
             <div className="min-w-[3rem] text-center">
               <Input
                 type="number"
@@ -130,7 +130,7 @@ export function CartItem({ item, className, ...props }) {
                 min="1"
               />
             </div>
-
+            
             <Button
               variant="ghost"
               size="sm"

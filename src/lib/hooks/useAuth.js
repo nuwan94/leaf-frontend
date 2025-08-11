@@ -100,6 +100,8 @@ export const useAuth = () => {
   useEffect(() => {
     const checkAuth = () => {
       const currentUser = getCurrentUser();
+      
+      console.log('useAuth checkAuth:', { currentUser: !!currentUser, userId: currentUser?.id });
 
       if (currentUser) {
         setUser(currentUser);
@@ -109,6 +111,9 @@ export const useAuth = () => {
         if (!isTokenExpired(currentUser.token)) {
           setupTokenRefresh(currentUser.token, refreshToken);
         }
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
 
       setIsLoading(false);

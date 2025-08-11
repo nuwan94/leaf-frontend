@@ -87,7 +87,16 @@ export function CartProvider({ children }) {
 
   // Add item to cart
   const addToCart = async (productId, quantity = 1, productData = null) => {
-    if (!isAuthenticated || !user) {
+    console.log('addToCart called:', { isAuthenticated, user: !!user, userId: user?.id });
+
+    // For now, let's check localStorage directly as a fallback
+    const storedUser = localStorage.getItem('user');
+    const hasStoredUser = !!storedUser;
+
+    console.log('Stored user check:', { hasStoredUser, isAuthenticated, user: !!user });
+
+    if (!isAuthenticated && !hasStoredUser) {
+      console.error('Authentication check failed:', { isAuthenticated, user: !!user, hasStoredUser });
       throw new Error('Please login to add items to cart');
     }
 
@@ -101,6 +110,7 @@ export function CartProvider({ children }) {
       if (existingItemIndex > -1) {
         // Update existing item quantity
         currentItems[existingItemIndex].quantity += quantity;
+        console.log('Updated existing item:', currentItems[existingItemIndex]);
       } else {
         // Add new item
         const newItem = {
@@ -114,9 +124,12 @@ export function CartProvider({ children }) {
           brand: productData?.brand || null
         };
         currentItems.push(newItem);
+        console.log('Added new item:', newItem);
       }
 
-      return updateCart(currentItems);
+      const updatedCart = updateCart(currentItems);
+      console.log('Cart updated successfully:', updatedCart);
+      return updatedCart;
     } catch (err) {
       console.error('Failed to add to cart:', err);
       setError(err.message);
@@ -128,7 +141,13 @@ export function CartProvider({ children }) {
 
   // Update cart item quantity
   const updateCartItem = async (itemId, quantity) => {
-    if (!isAuthenticated || !user) {
+    console.log('updateCartItem called:', { isAuthenticated, user: !!user, userId: user?.id });
+
+    // Check localStorage directly as a fallback
+    const storedUser = localStorage.getItem('user');
+    const hasStoredUser = !!storedUser;
+
+    if (!isAuthenticated && !hasStoredUser) {
       console.error('User not authenticated for cart update');
       return;
     }
@@ -159,7 +178,13 @@ export function CartProvider({ children }) {
 
   // Remove item from cart
   const removeFromCart = async (itemId) => {
-    if (!isAuthenticated || !user) {
+    console.log('removeFromCart called:', { isAuthenticated, user: !!user, userId: user?.id });
+
+    // Check localStorage directly as a fallback
+    const storedUser = localStorage.getItem('user');
+    const hasStoredUser = !!storedUser;
+
+    if (!isAuthenticated && !hasStoredUser) {
       console.error('User not authenticated for cart removal');
       return;
     }
@@ -181,7 +206,13 @@ export function CartProvider({ children }) {
 
   // Clear entire cart
   const clearCart = async () => {
-    if (!isAuthenticated || !user) {
+    console.log('clearCart called:', { isAuthenticated, user: !!user, userId: user?.id });
+
+    // Check localStorage directly as a fallback
+    const storedUser = localStorage.getItem('user');
+    const hasStoredUser = !!storedUser;
+
+    if (!isAuthenticated && !hasStoredUser) {
       console.error('User not authenticated for cart clearing');
       return;
     }
