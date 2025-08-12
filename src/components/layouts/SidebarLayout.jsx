@@ -46,7 +46,7 @@ const roleMenus = {
   farmer: [
     { icon: Home, label: 'Dashboard', href: '/' },
     { icon: Tractor, label: 'Farm Details', href: '/farmer/farm-details' },
-    { icon: Package, label: 'My Products', href: '/farmer/products', disabled: true },
+    { icon: Package, label: 'My Products', href: '/farmer/products', disabled: false },
     { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' , disabled: true },
     { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics', disabled: true },
     { icon: Settings, label: 'Profile', href: '/profile' },

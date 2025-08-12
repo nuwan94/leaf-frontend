@@ -14,6 +14,7 @@ import Profile from '@/pages/profile';
 import { TokenStatus } from '@/components/TokenStatus.jsx';
 import { CartProvider } from '@/lib/hooks/useCart.jsx';
 import { Toaster } from '@/components/ui/sonner';
+import FarmerProducts from '@/pages/farmer/products.jsx';
 
 const App = () => {
   return (
@@ -35,6 +36,7 @@ const App = () => {
               <Route path="/admin" element={<AdminHome />} />
               <Route path="/farmer" element={<FarmerHome />} />
               <Route path="/farmer/farm-details" element={<FarmDetails />} />
+              <Route path="/farmer/products" element={<FarmerProducts />} />
               <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
               <Route path="/customer" element={<CustomerHome />} />
 
