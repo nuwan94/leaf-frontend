@@ -37,24 +37,24 @@ import {
 const roleMenus = {
   admin: [
     { icon: Home, label: 'Dashboard', href: '/' },
-    { icon: Users, label: 'Users', href: '/admin/users' },
-    { icon: Package, label: 'Products', href: '/admin/products' },
-    { icon: ShoppingBag, label: 'Orders', href: '/admin/orders' },
-    { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
-    { icon: Settings, label: 'Settings', href: '/admin/settings' },
+    { icon: Users, label: 'Users', href: '/admin/users', disabled: true },
+    { icon: Package, label: 'Products', href: '/admin/products', disabled: true },
+    { icon: ShoppingBag, label: 'Orders', href: '/admin/orders', disabled: true },
+    { icon: BarChart3, label: 'Analytics', href: '/admin/analytics', disabled: true },
+    { icon: Settings, label: 'Settings', href: '/admin/settings' , disabled: true },
   ],
   farmer: [
     { icon: Home, label: 'Dashboard', href: '/' },
     { icon: Tractor, label: 'Farm Details', href: '/farmer/farm-details' },
-    { icon: Package, label: 'My Products', href: '/farmer/products' },
-    { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' },
-    { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics' },
+    { icon: Package, label: 'My Products', href: '/farmer/products', disabled: true },
+    { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' , disabled: true },
+    { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics', disabled: true },
     { icon: Settings, label: 'Profile', href: '/profile' },
   ],
   'delivery-agent': [
     { icon: Home, label: 'Dashboard', href: '/' },
-    { icon: Truck, label: 'Deliveries', href: '/delivery-agent/deliveries' },
-    { icon: MapPin, label: 'Routes', href: '/delivery-agent/routes' },
+    { icon: Truck, label: 'Deliveries', href: '/delivery-agent/deliveries', disabled: true },
+    { icon: MapPin, label: 'Routes', href: '/delivery-agent/routes', disabled: true },
     { icon: UserCheck, label: 'Profile', href: '/profile' },
   ],
 };
@@ -134,8 +134,10 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
                   "w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-left",
                   location.pathname === item.href
                     ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white",
+                  item.disabled && "opacity-50 cursor-not-allowed"
                 )}
+                disabled={item.disabled}
               >
                 <item.icon className="mr-3 h-5 w-5" />
                 {item.label}
@@ -166,7 +168,7 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction
+                  <AlertDialogAction variant="destructive"
                     onClick={async () => {
                       await handleLogout();
                       setLogoutDialogOpen(false);

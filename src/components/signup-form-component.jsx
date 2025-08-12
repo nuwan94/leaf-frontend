@@ -47,7 +47,7 @@ export function SignupForm({
             {t('farmerTitle')}
           </ToggleGroupItem>
           <ToggleGroupItem
-            value="admin"
+            value="delivery-agent"
             className="flex items-center justify-center p-3 flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary"
             variant="outline"
           >
