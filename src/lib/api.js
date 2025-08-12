@@ -42,6 +42,10 @@ api.interceptors.request.use(
         console.error('Error parsing user data from localStorage:', error);
       }
     }
+
+    // Add X-Locale-Language header to all requests
+    config.headers['X-Locale-Language'] = localStorage.getItem('user-language') || 'en';
+
     return config;
   },
   (error) => {
@@ -58,8 +62,9 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Skip token refresh for login/register endpoints
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
-                          originalRequest.url?.includes('/auth/register');
+    const isAuthEndpoint =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register');
 
     // Handle token expiration (401 Unauthorized) - but skip for auth endpoints
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
@@ -67,12 +72,14 @@ api.interceptors.response.use(
         // If token refresh is already in progress, queue the request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        }).catch(err => {
-          return Promise.reject(err);
-        });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
       }
 
       originalRequest._retry = true;
@@ -91,7 +98,7 @@ api.interceptors.response.use(
 
         // Attempt to refresh the token
         const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
-          refresh_token: user.refresh_token
+          refresh_token: user.refresh_token,
         });
 
         const newAccessToken = response.data.data.access_token;
@@ -101,7 +108,7 @@ api.interceptors.response.use(
         const updatedUser = {
           ...user,
           token: newAccessToken,
-          refresh_token: newRefreshToken
+          refresh_token: newRefreshToken,
         };
         localStorage.setItem('user', JSON.stringify(updatedUser));
 

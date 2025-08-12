@@ -1,17 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-
-import en from './locales/en.json';
-import si from './locales/si.json';
-import ta from './locales/ta.json';
+import api from './api';
 
 const appName = 'LEAF';
-
-const resources = {
-  en: { translation: { appName, ...en } },
-  si: { translation: { appName, ...si } },
-  ta: { translation: { appName, ...ta } },
-};
 
 // Get saved language preference or default to English
 const getInitialLanguage = () => {
@@ -19,13 +10,34 @@ const getInitialLanguage = () => {
   return savedLanguage || 'en';
 };
 
-i18n.use(initReactI18next).init({
-  resources,
-  lng: getInitialLanguage(),
-  fallbackLng: 'en',
-  interpolation: {
-    escapeValue: false,
-  },
-});
+const fetchMessages = async (lang) => {
+  try {
+    const response = await api.get('/localization', { params: { lang } });
+    if (response.data?.success && response.data?.messages) {
+      return response.data.messages;
+    }
+  } catch (err) {
+    // fallback to empty messages
+  }
+  return {};
+};
+
+const initI18n = async () => {
+  const lng = getInitialLanguage();
+  const messages = await fetchMessages(lng);
+  const resources = {
+    [lng]: { translation: { appName, ...messages } },
+  };
+  await i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng,
+      fallbackLng: 'en',
+      interpolation: { escapeValue: false },
+    });
+};
+
+initI18n();
 
 export default i18n;

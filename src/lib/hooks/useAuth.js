@@ -100,8 +100,6 @@ export const useAuth = () => {
   useEffect(() => {
     const checkAuth = () => {
       const currentUser = getCurrentUser();
-      
-      console.log('useAuth checkAuth:', { currentUser: !!currentUser, userId: currentUser?.id });
 
       if (currentUser) {
         setUser(currentUser);
