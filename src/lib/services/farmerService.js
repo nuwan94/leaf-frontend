@@ -71,6 +71,19 @@ export const farmerService = {
     const response = await api.delete(`/farmer/${id}/products/${productId}`);
     return response.data;
   },
+
+  // Update Farmer Product Inventory
+  updateInventory: async (productId, inventoryData, farmerId = null) => {
+    const id = farmerId || getCurrentFarmerId();
+    if (!id) {
+      throw new Error('Farmer ID is required');
+    }
+    if (!productId) {
+      throw new Error('Product ID is required');
+    }
+    const response = await api.put(`/farmer/${id}/inventory/${productId}`, inventoryData);
+    return response.data;
+  },
 };
 
 export default farmerService;

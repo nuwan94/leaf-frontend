@@ -130,7 +130,7 @@ export function ProductCard({ product, className, ...props }) {
           )}
 
           {/* Add to Cart Button - Bottom Right Corner */}
-          {(!inCart || !isAuthenticated) && (product.stock_quantity || product.stock) > 0 && (
+          {(!inCart || !isAuthenticated) && Number(product.quantity_available) > 0 && (
             <div className="absolute bottom-2 right-2">
               <Button
                 onClick={handleAddToCart}
@@ -204,7 +204,7 @@ export function ProductCard({ product, className, ...props }) {
 
             {/* Stock Status */}
             <div className="text-right">
-              {(product.stock_quantity || product.stock) > 0 ? (
+              {product.quantity_available > 0 ? (
                 <div className="flex items-center gap-1">
                   {inCart && isAuthenticated ? (
                     <div className="flex items-center gap-1 text-xs text-green-600">
