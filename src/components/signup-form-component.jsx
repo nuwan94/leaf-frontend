@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTranslation, Trans } from 'react-i18next';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -15,6 +16,7 @@ export function SignupForm({
   onSwitchToLogin
 }) {
   const { t } = useTranslation();
+  const selectedRole = form.watch('role');
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
@@ -49,7 +51,7 @@ export function SignupForm({
             className="flex items-center justify-center p-3 flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:border-primary"
             variant="outline"
           >
-            {t('adminTitle')}
+            {t('deliveryAgent')}
           </ToggleGroupItem>
         </ToggleGroup>
         {form.formState.errors.role && (
@@ -170,6 +172,121 @@ export function SignupForm({
           )}
         </div>
       </div>
+
+      {/* Farmer-specific fields */}
+      {selectedRole === 'farmer' && (
+        <>
+          {/* Farm Details Section */}
+            <h3 className="text-lg font-semibold text-primary mb-2">{t('farmDetails')}</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-3">
+                <Label htmlFor="signup-farmName">{t('farmName')} *</Label>
+                <Input
+                  id="signup-farmName"
+                  placeholder={t('farmNamePlaceholder')}
+                  {...form.register('farm_name')}
+                  className={cn(form.formState.errors.farm_name && 'border-destructive')}
+                  disabled={isLoading}
+                />
+                {form.formState.errors.farm_name && (
+                  <p className="text-sm text-destructive">
+                    {t(form.formState.errors.farm_name.message)}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="signup-farmSize">{t('farmSize')} *</Label>
+                <Input
+                  id="signup-farmSize"
+                  type="number"
+                  step="0.01"
+                  placeholder={t('farmSizePlaceholder')}
+                  {...form.register('farm_size')}
+                  className={cn(form.formState.errors.farm_size && 'border-destructive')}
+                  disabled={isLoading}
+                />
+                {form.formState.errors.farm_size && (
+                  <p className="text-sm text-destructive">
+                    {t(form.formState.errors.farm_size.message)}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              <Label htmlFor="signup-farmAddress">{t('farmAddress')} *</Label>
+              <Textarea
+                id="signup-farmAddress"
+                placeholder={t('farmAddressPlaceholder')}
+                {...form.register('farm_address')}
+                className={cn(form.formState.errors.farm_address && 'border-destructive')}
+                disabled={isLoading}
+                rows={3}
+              />
+              {form.formState.errors.farm_address && (
+                <p className="text-sm text-destructive">
+                  {t(form.formState.errors.farm_address.message)}
+                </p>
+              )}
+            </div>
+
+            <div className="grid gap-3">
+              <Label htmlFor="signup-farmingExperience">{t('farmingExperience')} *</Label>
+              <Input
+                id="signup-farmingExperience"
+                type="number"
+                placeholder={t('farmingExperiencePlaceholder')}
+                {...form.register('farming_experience')}
+                className={cn(form.formState.errors.farming_experience && 'border-destructive')}
+                disabled={isLoading}
+              />
+              {form.formState.errors.farming_experience && (
+                <p className="text-sm text-destructive">
+                  {t(form.formState.errors.farming_experience.message)}
+                </p>
+              )}
+            </div>
+
+          {/* Bank Details Section */}
+            <h3 className="text-lg font-semibold text-primary mb-2">{t('bankDetails')}</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-3">
+                <Label htmlFor="signup-bankName">{t('bankName')}</Label>
+                <Input
+                  id="signup-bankName"
+                  placeholder={t('bankNamePlaceholder')}
+                  {...form.register('bank_name')}
+                  className={cn(form.formState.errors.bank_name && 'border-destructive')}
+                  disabled={isLoading}
+                />
+                {form.formState.errors.bank_name && (
+                  <p className="text-sm text-destructive">
+                    {t(form.formState.errors.bank_name.message)}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="signup-bankAccountNumber">{t('bankAccountNumber')}</Label>
+                <Input
+                  id="signup-bankAccountNumber"
+                  placeholder={t('bankAccountNumberPlaceholder')}
+                  {...form.register('bank_account_number')}
+                  className={cn(form.formState.errors.bank_account_number && 'border-destructive')}
+                  disabled={isLoading}
+                />
+                {form.formState.errors.bank_account_number && (
+                  <p className="text-sm text-destructive">
+                    {t(form.formState.errors.bank_account_number.message)}
+                  </p>
+                )}
+              </div>
+            </div>
+        </>
+      )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? (

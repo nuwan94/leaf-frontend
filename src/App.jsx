@@ -48,7 +48,7 @@ const App = () => {
           </Routes>
         </div>
         <AccessibilityControls />
-        <Toaster richColors closeButton  position="top-right" />
+        <Toaster richColors  position="top-right" />
       </div>
     </CartProvider>
   );

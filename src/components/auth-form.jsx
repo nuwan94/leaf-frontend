@@ -12,8 +12,7 @@ import { LoginForm } from '@/components/login-form-component';
 import { SignupForm } from '@/components/signup-form-component';
 import { AuthBackground } from '@/components/auth-background';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { authService } from '@/lib/services';
-import { Button } from '@/components/ui/button';
+import { authService, farmerService } from '@/lib/services';
 import { useNavigate } from 'react-router-dom';
 
 // Validation schemas
@@ -31,10 +30,27 @@ const signupSchema = z
     role: z.string().min(1, 'roleRequired'),
     password: z.string().min(8, 'passwordTooShort'),
     confirmPassword: z.string().min(1, 'confirmPasswordRequired'),
+    // Farmer-specific fields (conditional)
+    farm_name: z.string().optional(),
+    farm_size: z.string().optional(),
+    farm_address: z.string().optional(),
+    farming_experience: z.string().optional(),
+    bank_name: z.string().optional(),
+    bank_account_number: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'passwordMismatch',
     path: ['confirmPassword'],
+  })
+  .refine((data) => {
+    // If role is farmer, farm fields are required
+    if (data.role === 'farmer') {
+      return data.farm_name && data.farm_size && data.farm_address && data.farming_experience;
+    }
+    return true;
+  }, {
+    message: 'Farm details are required for farmers',
+    path: ['farm_name'],
   });
 
 export function AuthForm({ className, ...props }) {
@@ -88,46 +104,94 @@ export function AuthForm({ className, ...props }) {
           navigate('/');
         }
       } else {
-        // Handle signup (keeping existing logic for now)
-        const response = await authService.register({
+        // Handle signup - separate basic user data from farmer-specific data
+        const basicUserData = {
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
           phone: data.phone,
           role: data.role,
           password: data.password,
-        });
+        };
+
+        // Register the basic user account first
+        const response = await authService.register(basicUserData);
 
         console.log('Registration response:', response); // Debug log
 
-        // Handle registration response (assuming similar structure)
-        if (response.success && response.data?.user) {
-          const userData = response.data.user;
-          const accessToken = response.data.access_token;
-          const refreshToken = response.data.refresh_token;
+        // Handle registration response
+        if (response.success && response.data) {
+          // Registration successful, now login the user to get tokens
+          try {
+            const user = await login({
+              email: data.email,
+              password: data.password,
+            });
 
-          const roleMap = {
-            1: 'admin',
-            2: 'customer',
-            3: 'farmer',
-            4: 'delivery-agent'
-          };
+            if (user && data.role === 'farmer') {
+              // If user is a farmer, make second API call to save farm details
+              try {
+                const farmerProfileData = {
+                  farm_name: data.farm_name,
+                  farm_size: parseFloat(data.farm_size),
+                  farm_address: data.farm_address,
+                  farming_experience: parseInt(data.farming_experience),
+                  bank_name: data.bank_name || null,
+                  bank_account_number: data.bank_account_number || null,
+                };
 
-          const user = {
-            ...userData,
-            role: roleMap[userData.role_id] || 'customer',
-            token: accessToken,
-            refresh_token: refreshToken
-          };
+                const farmerResponse = await farmerService.createProfile(farmerProfileData);
 
-          localStorage.setItem('user', JSON.stringify(user));
-
-          // Only redirect on successful registration
-          navigate('/');
+                if (farmerResponse.success) {
+                  console.log('Farmer profile created successfully');
+                  // Registration complete for farmer
+                  navigate('/');
+                } else {
+                  // Handle farmer profile creation failure
+                  console.error('Failed to create farmer profile:', farmerResponse.message);
+                  currentForm.setError('root', {
+                    type: 'manual',
+                    message: 'Account created but failed to save farm details. Please complete your profile later.'
+                  });
+                  // Still redirect to allow user to complete profile later
+                  setTimeout(() => navigate('/'), 2000);
+                }
+              } catch (farmerError) {
+                console.error('Error creating farmer profile:', farmerError);
+                // Account was created but farmer profile failed
+                currentForm.setError('root', {
+                  type: 'manual',
+                  message: 'Account created but failed to save farm details. Please complete your profile later.'
+                });
+                // Still redirect to allow user to complete profile later
+                setTimeout(() => navigate('/'), 2000);
+              }
+            } else if (user) {
+              // For non-farmer users, redirect immediately
+              navigate('/');
+            } else {
+              // Login failed after registration
+              currentForm.setError('root', {
+                type: 'manual',
+                message: 'Account created successfully. Please login to continue.'
+              });
+              setTimeout(() => switchMode('login'), 2000);
+            }
+          } catch (loginError) {
+            console.error('Login error after registration:', loginError);
+            // Registration succeeded but login failed
+            currentForm.setError('root', {
+              type: 'manual',
+              message: 'Account created successfully. Please login to continue.'
+            });
+            setTimeout(() => switchMode('login'), 2000);
+          }
         } else {
-          // If email verification is required, show success message
-          alert(t('registrationSuccessful'));
-          switchMode('login');
+          // Registration failed
+          currentForm.setError('root', {
+            type: 'manual',
+            message: response.message || 'Registration failed. Please try again.'
+          });
         }
       }
     } catch (error) {
