@@ -2,10 +2,10 @@ import api from '@/lib/api';
 
 // Role mapping for frontend to backend
 const ROLE_MAPPING = {
-  'customer': 1,
-  'farmer': 2,
-  'delivery-agent': 3,
-  'admin': 4
+  admin: 1,
+  customer: 2,
+  farmer: 3,
+  'delivery-agent': 4,
 };
 
 // Auth API endpoints
@@ -25,7 +25,7 @@ export const authService = {
       first_name: userData.firstName,
       last_name: userData.lastName,
       role_id: ROLE_MAPPING[userData.role] || 1, // Default to customer if role not found
-      ...(userData.phone && { phone: userData.phone }) // Add phone if provided
+      ...(userData.phone && { phone: userData.phone }), // Add phone if provided
     };
 
     const response = await api.post('/auth/register', backendData);
@@ -51,7 +51,7 @@ export const authService = {
     }
 
     const response = await api.post('/auth/refresh', {
-      refresh_token: user.refresh_token
+      refresh_token: user.refresh_token,
     });
     return response.data;
   },
