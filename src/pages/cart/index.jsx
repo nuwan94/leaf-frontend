@@ -70,8 +70,8 @@ export default function CartPage() {
                       {t('emptyCartDescription')}
                     </p>
                   </div>
-                  <Button
-                    onClick={handleContinueShopping}
+                  <Button 
+                    onClick={handleContinueShopping} 
                     className="w-full py-3 text-base font-medium"
                     size="lg"
                   >
@@ -211,9 +211,9 @@ export default function CartPage() {
 
                     {/* Checkout Actions */}
                     <div className="space-y-3 pt-2">
-                      <Button
-                        onClick={handleCheckout}
-                        className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+                      <Button 
+                        onClick={handleCheckout} 
+                        className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" 
                         size="lg"
                       >
                         {t('proceedToCheckout')}

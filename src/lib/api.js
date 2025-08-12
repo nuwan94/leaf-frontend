@@ -58,7 +58,7 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Skip token refresh for login/register endpoints
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
                           originalRequest.url?.includes('/auth/register');
 
     // Handle token expiration (401 Unauthorized) - but skip for auth endpoints

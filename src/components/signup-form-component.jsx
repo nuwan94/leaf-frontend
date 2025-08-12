@@ -3,9 +3,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { useTranslation, Trans } from 'react-i18next';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { provinces, citiesByProvince } from '@/lib/sri-lanka-location-data';
+import { useState } from 'react';
 
 export function SignupForm({
   form,
@@ -17,6 +20,8 @@ export function SignupForm({
 }) {
   const { t } = useTranslation();
   const selectedRole = form.watch('role');
+  const [selectedProvince, setSelectedProvince] = useState(form.watch('province') || '');
+  const cities = selectedProvince ? citiesByProvince[selectedProvince] || [] : [];
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
@@ -169,6 +174,54 @@ export function SignupForm({
             <p className="text-sm text-destructive">
               {t(form.formState.errors.confirmPassword.message)}
             </p>
+          )}
+        </div>
+      </div>
+
+      {/* Province and City Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid gap-3">
+          <Label htmlFor="signup-province">Province *</Label>
+          <Select
+            value={selectedProvince}
+            onValueChange={value => {
+              setSelectedProvince(value);
+              form.setValue('province', value);
+              form.setValue('city', '');
+            }}
+            disabled={isLoading}
+          >
+            <SelectTrigger id="signup-province" className={cn('w-full', form.formState.errors.province && 'border-destructive')}>
+              <SelectValue placeholder="Select province" />
+            </SelectTrigger>
+            <SelectContent>
+              {provinces.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {form.formState.errors.province && (
+            <p className="text-sm text-destructive">Province is required</p>
+          )}
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="signup-city">City *</Label>
+          <Select
+            value={form.watch('city')}
+            onValueChange={value => form.setValue('city', value)}
+            disabled={isLoading || !selectedProvince}
+          >
+            <SelectTrigger id="signup-city" className={cn('w-full', form.formState.errors.city && 'border-destructive')}>
+              <SelectValue placeholder={selectedProvince ? 'Select city' : 'Select province first'} />
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map(city => (
+                <SelectItem key={city} value={city}>{city}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {form.formState.errors.city && (
+            <p className="text-sm text-destructive">City is required</p>
           )}
         </div>
       </div>
