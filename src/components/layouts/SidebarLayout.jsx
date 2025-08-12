@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import Logo from '@/assets/logo.png';
 import {
   BarChart3,
+  Flag,
   Home,
   LogOut,
   MapPin,
@@ -41,13 +42,14 @@ const roleMenus = {
     { icon: Package, label: 'Products', href: '/admin/products', disabled: true },
     { icon: ShoppingBag, label: 'Orders', href: '/admin/orders', disabled: true },
     { icon: BarChart3, label: 'Analytics', href: '/admin/analytics', disabled: true },
-    { icon: Settings, label: 'Settings', href: '/admin/settings' , disabled: true },
+    { icon: Settings, label: 'Settings', href: '/admin/settings', disabled: true },
+    { icon: Flag, label: 'Localization', href: '/admin/localization', disabled: false },
   ],
   farmer: [
     { icon: Home, label: 'Dashboard', href: '/' },
     { icon: Tractor, label: 'Farm Details', href: '/farmer/farm-details' },
     { icon: Package, label: 'My Products', href: '/farmer/products', disabled: false },
-    { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders' , disabled: true },
+    { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders', disabled: true },
     { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics', disabled: true },
     { icon: Settings, label: 'Profile', href: '/profile' },
   ],
@@ -131,11 +133,11 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
                 key={item.href}
                 onClick={() => handleMenuItemClick(item.href)}
                 className={cn(
-                  "w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-left",
+                  'w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-left',
                   location.pathname === item.href
-                    ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white",
-                  item.disabled && "opacity-50 cursor-not-allowed"
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white',
+                  item.disabled && 'opacity-50 cursor-not-allowed'
                 )}
                 disabled={item.disabled}
               >
@@ -168,7 +170,8 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive"
+                  <AlertDialogAction
+                    variant="destructive"
                     onClick={async () => {
                       await handleLogout();
                       setLogoutDialogOpen(false);
@@ -212,9 +215,7 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">{children}</div>
-        </main>
+        <main className="flex-1 min-h-0 p-6 flex flex-col overflow-hidden">{children}</main>
       </div>
     </div>
   );

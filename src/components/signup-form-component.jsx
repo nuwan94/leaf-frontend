@@ -237,7 +237,6 @@ export function SignupForm({
                 <Label htmlFor="signup-farmName">{t('farmName')} *</Label>
                 <Input
                   id="signup-farmName"
-                  placeholder={t('farmNamePlaceholder')}
                   {...form.register('farm_name')}
                   className={cn(form.formState.errors.farm_name && 'border-destructive')}
                   disabled={isLoading}
@@ -255,7 +254,6 @@ export function SignupForm({
                   id="signup-farmSize"
                   type="number"
                   step="0.01"
-                  placeholder={t('farmSizePlaceholder')}
                   {...form.register('farm_size')}
                   className={cn(form.formState.errors.farm_size && 'border-destructive')}
                   disabled={isLoading}
@@ -272,7 +270,6 @@ export function SignupForm({
               <Label htmlFor="signup-farmAddress">{t('farmAddress')} *</Label>
               <Textarea
                 id="signup-farmAddress"
-                placeholder={t('farmAddressPlaceholder')}
                 {...form.register('farm_address')}
                 className={cn(form.formState.errors.farm_address && 'border-destructive')}
                 disabled={isLoading}
@@ -290,7 +287,6 @@ export function SignupForm({
               <Input
                 id="signup-farmingExperience"
                 type="number"
-                placeholder={t('farmingExperiencePlaceholder')}
                 {...form.register('farming_experience')}
                 className={cn(form.formState.errors.farming_experience && 'border-destructive')}
                 disabled={isLoading}
@@ -310,7 +306,6 @@ export function SignupForm({
                 <Label htmlFor="signup-bankName">{t('bankName')}</Label>
                 <Input
                   id="signup-bankName"
-                  placeholder={t('bankNamePlaceholder')}
                   {...form.register('bank_name')}
                   className={cn(form.formState.errors.bank_name && 'border-destructive')}
                   disabled={isLoading}
@@ -326,7 +321,6 @@ export function SignupForm({
                 <Label htmlFor="signup-bankAccountNumber">{t('bankAccountNumber')}</Label>
                 <Input
                   id="signup-bankAccountNumber"
-                  placeholder={t('bankAccountNumberPlaceholder')}
                   {...form.register('bank_account_number')}
                   className={cn(form.formState.errors.bank_account_number && 'border-destructive')}
                   disabled={isLoading}

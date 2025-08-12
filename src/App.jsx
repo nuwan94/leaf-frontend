@@ -15,6 +15,7 @@ import { TokenStatus } from '@/components/TokenStatus.jsx';
 import { CartProvider } from '@/lib/hooks/useCart.jsx';
 import { Toaster } from '@/components/ui/sonner';
 import FarmerProducts from '@/pages/farmer/products.jsx';
+import AdminLocalization from '@/pages/admin/localization.jsx';
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
               {/* Other protected routes */}
               <Route path="/cart" element={<CartPage />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/admin/localization" element={<AdminLocalization />} />
             </Route>
 
             {/* Fallback to home for unknown routes */}
