@@ -110,7 +110,7 @@ export default function TopNavLayout({ children, className }) {
 	return (
     <div className={cn('min-h-screen bg-background', className)}>
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="sticky top-0 z-50 border-b bg-background shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Logo and Home */}
@@ -166,7 +166,7 @@ export default function TopNavLayout({ children, className }) {
                           <div className="w-10 h-10 bg-muted rounded flex-shrink-0 flex items-center justify-center">
                             {product.image_url ? (
                               <img
-                                src={product.image_url}
+                                src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
                                 alt={product.name}
                                 className="w-full h-full object-cover rounded"
                               />

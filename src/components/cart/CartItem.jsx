@@ -55,7 +55,7 @@ export function CartItem({ item, className, ...props }) {
       <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600">
         {item.image_url || item.product?.image ? (
           <img
-            src={item.image_url || item.product?.image}
+            src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${item.image_url}`}
             alt={item.name || item.product?.name}
             className="w-full h-full object-cover"
             loading="lazy"

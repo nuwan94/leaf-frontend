@@ -43,15 +43,13 @@ export function ProductCatalog({
   }), [filters]);
 
   // Fetch products with current filters and pagination
-  const fetchProducts = useCallback(async (page = 1) => {
+  const fetchProducts = useCallback(async (page = 1, params = new URLSearchParams()) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const params = {
-        ...activeFilters,
-        page,
-        // Only include non-empty filter values, but preserve 0 values for price fields
+      // Only include non-empty filter values, but preserve 0 values for price fields
+      params = new URLSearchParams({
         ...Object.fromEntries(
           Object.entries(activeFilters).filter(([key, value]) => {
             // For price fields, include them if they're numbers (including 0) or non-empty strings
@@ -61,8 +59,9 @@ export function ProductCatalog({
             // For other fields, exclude empty values
             return value !== '';
           })
-        )
-      };
+        ),
+        page
+      });
 
       const response = await productService.getProducts(params);
 
@@ -91,8 +90,19 @@ export function ProductCatalog({
 
   // Fetch products when filters change
   useEffect(() => {
-    fetchProducts(1);
-  }, [fetchProducts]);
+    // Build query params from activeFilters
+    const params = new URLSearchParams();
+    if (activeFilters.page) params.append('page', activeFilters.page);
+    if (activeFilters.limit) params.append('limit', activeFilters.limit);
+    if (activeFilters.category_id) params.append('category_id', activeFilters.category_id);
+    if (activeFilters.name) params.append('name', activeFilters.name);
+    if (activeFilters.min_price) params.append('min_price', activeFilters.min_price);
+    if (activeFilters.max_price) params.append('max_price', activeFilters.max_price);
+    if (activeFilters.brand) params.append('brand', activeFilters.brand);
+    if (activeFilters.farmer_id) params.append('farmer_id', activeFilters.farmer_id);
+
+    fetchProducts(1, params);
+  }, [fetchProducts, activeFilters]);
 
   // Clear all filters
   const clearFilters = () => {

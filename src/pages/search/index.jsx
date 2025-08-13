@@ -10,8 +10,17 @@ export default function SearchPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Get initial search query from URL
-  const initialQuery = searchParams.get('q') || '';
+  // Get initial search query and filters from URL
+  const initialFilters = {
+    name: searchParams.get('q') || '',
+    category_id: searchParams.get('category') || '',
+    min_price: searchParams.get('min_price') || '',
+    max_price: searchParams.get('max_price') || '',
+    brand: searchParams.get('brand') || '',
+    farmer_id: searchParams.get('farmer_id') || '',
+    page: searchParams.get('page') || 1,
+    limit: searchParams.get('limit') || 16,
+  };
 
   return (
     <TopNavLayout>
@@ -29,9 +38,9 @@ export default function SearchPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{t('searchProducts')}</h1>
-            {initialQuery && (
+            {initialFilters.name && (
               <p className="text-muted-foreground">
-                {t('searchResultsFor')} "{initialQuery}"
+                {t('searchResultsFor')} "{initialFilters.name}"
               </p>
             )}
           </div>
@@ -39,7 +48,7 @@ export default function SearchPage() {
 
         {/* Product Catalog */}
         <ProductCatalog
-          filters={{ name: initialQuery }}
+          filters={initialFilters}
         />
       </div>
     </TopNavLayout>
