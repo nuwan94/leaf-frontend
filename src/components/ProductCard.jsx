@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '@/lib/currency';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Plus, Minus, Check } from 'lucide-react';
+import { ShoppingCart, Plus, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -110,11 +110,24 @@ export function ProductCard({ product, className, ...props }) {
   return (
     <>
       <Card
-        className={cn("overflow-hidden h-fit group", className)}
+        className={cn("overflow-hidden h-fit group relative", className)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...props}
       >
+        {/* Discount Percentage Overlay - top right of card, not image */}
+        {((product.is_seasonal_deal || product.is_flash_deal) && product.discounted_price && product.discounted_price < product.price) && (
+          (() => {
+            const percent = Math.round(
+              100 * (parseFloat(product.price) - parseFloat(product.discounted_price)) / parseFloat(product.price)
+            );
+            return (
+              <span className="absolute top-3 right-3 bg-red-600 text-white text-base font-bold px-4 py-1 rounded-lg shadow-lg z-30 drop-shadow-xl animate-bounce">
+                -{percent}%
+              </span>
+            );
+          })()
+        )}
         {/* Product Image with Floating Controls */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           {product.image_url ? (
@@ -128,99 +141,68 @@ export function ProductCard({ product, className, ...props }) {
               <ShoppingCart className="h-8 w-8" />
             </div>
           )}
-
-          {/* Add to Cart Button - Bottom Right Corner */}
-          {(!inCart || !isAuthenticated) && Number(product.quantity_available) > 0 && (
-            <div className="absolute bottom-2 right-2">
+        </div>
+        <CardContent className="p-3 flex flex-col gap-4">
+          {/* Product Info */}
+          <div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
+                  {product.name}
+                </h3>
+              </div>
+              {product.category && (
+                <span className="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">
+                  {product.category.name || t('unknownCategory')}
+                </span>
+              )}
+              {product.brand && (
+                <span className="text-xs text-muted-foreground">{product.brand}</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-1 mt-2">
+              {((product.is_seasonal_deal || product.is_flash_deal) && product.discounted_price && product.discounted_price < product.price) ? (
+                <>
+                  <span className="font-bold text-xl text-green-700 dark:text-green-400">
+                    {formatPrice(product.discounted_price)}
+                    <span className="text-base text-gray-500 ml-1">/{product.unit || t('perItem')}</span>
+                  </span>
+                  <span className="line-through text-gray-400 text-lg">
+                    {formatPrice(product.price)}
+                    <span className="text-base text-gray-400 ml-1">/{product.unit || t('perItem')}</span>
+                  </span>
+                </>
+              ) : (
+                <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
+                  {formatPrice(product.price)}
+                  <span className="text-base text-gray-500 ml-1">/{product.unit || t('perItem')}</span>
+                </span>
+              )}
+            </div>
+          </div>
+          {/* Cart Controls - simple, full width, bottom of card */}
+          <div>
+            {Number(product.quantity_available) > 0 && (!inCart && isAuthenticated) && (
               <Button
                 onClick={handleAddToCart}
                 disabled={isAdding || isLoading}
-                size="sm"
-                className={cn(
-                  "h-8 w-8 p-0 rounded-full shadow-lg transition-all duration-200",
-                  "bg-primary hover:bg-primary/90 text-primary-foreground",
-                  "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0",
-                  isHovered && "opacity-100 translate-y-0"
-                )}
+                className="w-full"
               >
-                {isAdding ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-                ) : (
-                  <ShoppingCart className="h-4 w-4" />
-                )}
+                {isAdding ? t('adding') : <><ShoppingCart className="inline-block mr-2 h-4 w-4" />{t('addToCart')}</>}
               </Button>
-            </div>
-          )}
-
-          {/* Quantity Controls - Bottom Right Corner (when in cart and authenticated) */}
-          {inCart && isAuthenticated && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-full p-1 shadow-lg">
-              <Button
-                onClick={decrementQuantity}
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 rounded-full hover:bg-muted"
-              >
-                <Minus className="h-3 w-3" />
+            )}
+            {inCart && isAuthenticated && (
+              <div className="w-full flex items-center justify-between gap-2 mt-2">
+                <Button onClick={decrementQuantity} className="w-10"> <Minus className="h-4 w-4" /> </Button>
+                <span className="text-base font-medium text-center w-10">{cartItem?.quantity || 0}</span>
+                <Button onClick={incrementQuantity} className="w-10"> <Plus className="h-4 w-4" /> </Button>
+              </div>
+            )}
+            {!isAuthenticated && (
+              <Button onClick={() => setShowAlert(true)} className="w-full">
+                <ShoppingCart className="inline-block mr-2 h-4 w-4" />{t('addToCart')}
               </Button>
-              <span className="text-sm font-medium px-2 min-w-[1.5rem] text-center">
-                {cartItem?.quantity || 0}
-              </span>
-              <Button
-                onClick={incrementQuantity}
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 rounded-full hover:bg-muted"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Product Info */}
-        <CardContent className="p-3 space-y-2">
-          <div>
-            <h3 className="font-medium text-sm leading-tight line-clamp-2 min-h-[2.5rem]">
-              {product.name}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              {product.brand && `${product.brand} • `}
-              {product.unit || 'per item'}
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <p className="font-semibold text-sm">
-                {formatPrice(product.price)}
-              </p>
-              {product.original_price && product.original_price > product.price && (
-                <p className="text-xs text-muted-foreground line-through">
-                  {formatPrice(product.original_price)}
-                </p>
-              )}
-            </div>
-
-            {/* Stock Status */}
-            <div className="text-right">
-              {product.quantity_available > 0 ? (
-                <div className="flex items-center gap-1">
-                  {inCart && isAuthenticated ? (
-                    <div className="flex items-center gap-1 text-xs text-green-600">
-                      <Check className="h-3 w-3" />
-                      <span>{t('inCart')}</span>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-green-600">
-                      {t('inStock')}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-xs text-red-600">{t('outOfStock')}</p>
-              )}
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>

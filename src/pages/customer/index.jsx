@@ -23,7 +23,7 @@ export default function CustomerDashboard() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await customerService.getProducts({ limit: 12 });
+        const response = await customerService.getProducts({ limit: 12, is_featured: 1 });
         const productsData = response.data || response.products || [];
         setProducts(productsData);
       } catch (error) {
