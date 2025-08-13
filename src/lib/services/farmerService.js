@@ -55,7 +55,13 @@ export const farmerService = {
     if (!id) {
       throw new Error('Farmer ID is required');
     }
-    const response = await api.post(`/farmer/${id}/products`, productData);
+
+    const response = await api.post(`/farmer/${id}/products`, productData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
     return response.data;
   },
 
@@ -94,12 +100,13 @@ export const farmerService = {
     if (!productId) {
       throw new Error('Product ID is required');
     }
-    // Ensure price is sent as a number if present
-    const payload = { ...productData };
-    if (payload.price !== undefined) {
-      payload.price = parseFloat(payload.price);
-    }
-    const response = await api.put(`/farmer/${id}/products/${productId}`, payload);
+
+    // Handle FormData for image uploads
+    const response = await api.post(`/farmer/${id}/products/${productId}`, productData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 };

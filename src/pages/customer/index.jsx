@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import TopNavLayout from '@/components/layouts/TopNavLayout';
 import { ProductCard } from '@/components/ProductCard';
@@ -7,6 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import banner1 from '@/assets/banner1.jpg';
+import vegetables from '@/assets/vegetables.png';
+import fruits from '@/assets/fruits.png';
+import grains from '@/assets/grains.png';
+import dairy from '@/assets/dairy.png';
+import { Card } from '@/components/ui/card.jsx';
 
 export default function CustomerDashboard() {
   const { t } = useTranslation();
@@ -41,7 +46,7 @@ export default function CustomerDashboard() {
           backgroundImage: `url(${banner1})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundRepeat: 'no-repeat',
         }}
       >
         {/* Overlay for better text readability */}
@@ -49,9 +54,12 @@ export default function CustomerDashboard() {
 
         <div className="relative container mx-auto px-4 py-12">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Fresh Produce Market</h1>
+            <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">
+              Fresh Produce Market
+            </h1>
             <p className="text-lg text-white/90 mb-8 drop-shadow-md">
-              Discover the freshest fruits, vegetables, and farm products directly from local farmers
+              Discover the freshest fruits, vegetables, and farm products directly from local
+              farmers
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -74,20 +82,23 @@ export default function CustomerDashboard() {
           <h2 className="text-2xl font-bold text-center mb-8">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: 'Vegetables', id: 1, emoji: '🥬' },
-              { name: 'Fruits', id: 2, emoji: '🍎' },
-              { name: 'Grains', id: 3, emoji: '🌾' },
-              { name: 'Dairy', id: 4, emoji: '🥛' }
+              { name: 'Vegetables', id: 1, image: vegetables },
+              { name: 'Fruits', id: 2, image: fruits },
+              { name: 'Grains', id: 3, image: grains },
+              { name: 'Dairy', id: 4, image: dairy },
             ].map((category) => (
-              <Button
+              <Card
                 key={category.id}
-                variant="outline"
-                className="h-24 flex-col gap-2 bg-background hover:bg-accent"
+                className="h-64 flex flex-col items-center justify-center gap-2 bg-background hover:bg-accent cursor-pointer"
                 onClick={() => navigate(`/search?category=${category.id}`)}
               >
-                <span className="text-2xl">{category.emoji}</span>
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="h-full w-full object-contain transition-transform duration-300 ease-in-out hover:scale-105"
+                />
                 <span className="font-medium">{category.name}</span>
-              </Button>
+              </Card>
             ))}
           </div>
         </div>
@@ -132,9 +143,7 @@ export default function CustomerDashboard() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
-              No products available at the moment.
-            </div>
+            <div className="text-muted-foreground mb-4">No products available at the moment.</div>
             <Button variant="outline" onClick={() => window.location.reload()}>
               Refresh
             </Button>
