@@ -13,13 +13,7 @@ import { farmerService } from '@/lib/services';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-
-const categories = [
-	{ id: 1, name: 'Vegetables' },
-	{ id: 2, name: 'Fruits' },
-	{ id: 3, name: 'Grains' },
-	{ id: 4, name: 'Other' },
-];
+import AddNewProduct from '@/components/farmer/AddNewProduct';
 
 const productSchema = z.object({
 	name: z.string().min(2, 'Product name is required'),
@@ -31,12 +25,13 @@ const productSchema = z.object({
 const FarmerProducts = () => {
 	const [products, setProducts] = useState([]);
 	const [showAddModal, setShowAddModal] = useState(false);
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [deletingId, setDeletingId] = useState(null);
 	const [inventoryState, setInventoryState] = useState({});
 	const [savingInventoryId, setSavingInventoryId] = useState(null);
 	const [selectedImage, setSelectedImage] = useState(null);
 	const [productImages, setProductImages] = useState({}); // Track image changes per product
+	const [error, setError] = useState(null);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const {
 		register,
@@ -57,6 +52,7 @@ const FarmerProducts = () => {
 	});
 
 	const fetchProducts = async () => {
+		setIsLoading(true);
 		try {
 			const response = await farmerService.getProducts();
 			if (response.success && Array.isArray(response.data)) {
@@ -74,48 +70,6 @@ const FarmerProducts = () => {
 	useEffect(() => {
 		fetchProducts();
 	}, []);
-
-	// Ensure the image field is correctly appended to FormData
-	// Add logging to debug FormData content
-	const onAddProduct = async (data) => {
-		setIsSubmitting(true);
-		try {
-			console.log('Form data:', data);
-			console.log('Selected image:', selectedImage);
-
-			const formData = new FormData();
-			formData.append('name', data.name);
-			formData.append('price', parseFloat(data.price));
-			formData.append('category_id', parseInt(data.category_id));
-			formData.append('status', data.status);
-
-			// Use the selectedImage state instead of data.image
-			if (selectedImage) {
-				formData.append('image', selectedImage);
-			}
-
-			// Log FormData content for debugging
-			for (let [key, value] of formData.entries()) {
-				console.log(key, value);
-			}
-
-			const response = await farmerService.addProduct(formData);
-
-			if (response.success) {
-				toast.success('Product added successfully!');
-				setShowAddModal(false);
-				reset();
-				setSelectedImage(null); // Reset image state
-				fetchProducts();
-			} else {
-				toast.error(response.message || 'Failed to add product');
-			}
-		} catch (err) {
-			toast.error(err.message || 'Failed to add product');
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
 
 	const handleDeleteProduct = async (productId) => {
 		setDeletingId(productId);
@@ -220,7 +174,7 @@ const FarmerProducts = () => {
 	return (
 		<SidebarLayout role="farmer" title="My Products" subtitle="Manage and view your farm products">
 			<div className="">
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 					{/* Add Product Card */}
 					<div
 						className="relative p-4 flex flex-col gap-2 items-center justify-center border-2 border-dashed border-primary rounded-lg min-h-[220px] cursor-pointer hover:bg-primary/5 transition"
@@ -356,79 +310,13 @@ const FarmerProducts = () => {
 						</Card>
 					))}
 				</div>
+				{/* Add New Product Modal */}
+				<AddNewProduct
+					open={showAddModal}
+					onOpenChange={setShowAddModal}
+					onProductAdded={fetchProducts}
+				/>
 			</div>
-
-			{/* Add Product Modal */}
-			<Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-				<DialogContent>
-					<DialogHeader>
-						<h2 className="text-lg font-semibold">Add New Product</h2>
-					</DialogHeader>
-					<form onSubmit={handleSubmit(onAddProduct)} className="space-y-4 mt-4">
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="name" className="mb-1">Product Name *</Label>
-							<Input id="name" {...register('name')} placeholder="e.g. Tomatoes" autoComplete="off" />
-							{errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="category_id" className="mb-1">Category *</Label>
-							<Select value={watch('category_id')} onValueChange={value => setValue('category_id', value)}>
-								<SelectTrigger id="category_id" className="w-full">
-									<SelectValue placeholder="Select category" />
-								</SelectTrigger>
-								<SelectContent>
-									{categories.map(cat => (
-										<SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{errors.category_id && <p className="text-xs text-red-500 mt-1">{errors.category_id.message}</p>}
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="price" className="mb-1">Price (Rs.) *</Label>
-							<Input id="price" type="number" step="0.01" {...register('price')} placeholder="e.g. 120.00" autoComplete="off" />
-							{errors.price && <p className="text-xs text-red-500 mt-1">{errors.price.message}</p>}
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="status" className="mb-1">Status *</Label>
-							<Select value={watch('status')} onValueChange={value => setValue('status', value)}>
-								<SelectTrigger id="status" className="w-full">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="active">Active</SelectItem>
-									<SelectItem value="inactive">Inactive</SelectItem>
-								</SelectContent>
-							</Select>
-							{errors.status && <p className="text-xs text-red-500 mt-1">{errors.status.message}</p>}
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="image" className="mb-1">Product Image</Label>
-							<Input
-								id="image"
-								type="file"
-								accept="image/png,image/jpeg,image/jpg"
-								onChange={(e) => {
-									const file = e.target.files[0];
-									setSelectedImage(file);
-									console.log('Image selected:', file);
-								}}
-							/>
-							{selectedImage && (
-								<p className="text-xs text-green-600 mt-1">
-									Selected: {selectedImage.name}
-								</p>
-							)}
-						</div>
-						<DialogFooter>
-							<Button type="button" variant="ghost" onClick={() => setShowAddModal(false)} className="mr-2">Cancel</Button>
-							<Button type="submit" disabled={isSubmitting}>
-								{isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add Product'}
-							</Button>
-						</DialogFooter>
-					</form>
-				</DialogContent>
-			</Dialog>
 		</SidebarLayout>
 	);
 };

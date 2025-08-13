@@ -109,6 +109,16 @@ export const farmerService = {
     });
     return response.data;
   },
+
+  // Get Farmer Stats
+  getFarmerStats: async (farmerId = null) => {
+    const id = farmerId || getCurrentFarmerId();
+    if (!id) {
+      throw new Error('Farmer ID is required');
+    }
+    const response = await api.get(`/farmer/${id}/stats`);
+    return response.data;
+  },
 };
 
 export default farmerService;
