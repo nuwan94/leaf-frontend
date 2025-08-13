@@ -10,32 +10,32 @@ const getCurrentFarmerId = () => {
 // Farmer-specific API endpoints
 export const farmerService = {
   // Get Farmer Profile
-  getProfile: async (farmerId = null) => {
+  getFarmDetails: async (farmerId = null) => {
     const id = farmerId || getCurrentFarmerId();
     if (!id) {
       throw new Error('Farmer ID is required');
     }
-    const response = await api.get(`/farmer/${id}/profile`);
+    const response = await api.get(`/farmer/${id}/detail`);
     return response.data;
   },
 
   // Update Profile
-  updateProfile: async (profileData, farmerId = null) => {
+  updateFarmDetails: async (profileData, farmerId = null) => {
     const id = farmerId || getCurrentFarmerId();
     if (!id) {
       throw new Error('Farmer ID is required');
     }
-    const response = await api.put(`/farmer/${id}/profile`, profileData);
+    const response = await api.put(`/farmer/${id}/detail`, profileData);
     return response.data;
   },
 
   // Create Profile
-  createProfile: async (profileData, farmerId = null) => {
+  createFarmDetails: async (profileData, farmerId = null) => {
     const id = farmerId || getCurrentFarmerId();
     if (!id) {
       throw new Error('Farmer ID is required');
     }
-    const response = await api.post(`/farmer/${id}/profile`, profileData);
+    const response = await api.post(`/farmer/${id}/detail`, profileData);
     return response.data;
   },
 

@@ -140,7 +140,7 @@ export function AuthForm({ className, ...props }) {
                   bank_account_number: data.bank_account_number || null,
                 };
 
-                const farmerResponse = await farmerService.createProfile(farmerProfileData);
+                const farmerResponse = await farmerService.createFarmDetails(farmerProfileData);
 
                 if (farmerResponse.success) {
                   console.log('Farmer profile created successfully');

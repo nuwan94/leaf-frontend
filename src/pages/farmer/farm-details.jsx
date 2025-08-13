@@ -43,7 +43,7 @@ export default function FarmDetails() {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await farmerService.getProfile();
+        const response = await farmerService.getFarmDetails();
 
         if (response.success && response.data) {
           setProfileData(response.data);
@@ -79,12 +79,12 @@ export default function FarmDetails() {
         farming_experience: parseInt(data.farming_experience),
       };
 
-      const response = await farmerService.updateProfile(profileUpdateData);
+      const response = await farmerService.updateFarmDetails(profileUpdateData);
 
       if (response.success) {
         toast.success('Profile updated successfully!');
         // Refresh profile data
-        const updatedResponse = await farmerService.getProfile();
+        const updatedResponse = await farmerService.getFarmDetails();
         if (updatedResponse.success && updatedResponse.data) {
           setProfileData(updatedResponse.data);
         }
@@ -146,21 +146,11 @@ export default function FarmDetails() {
   return (
     <SidebarLayout
       role="farmer"
-      title="Farm Profile"
-      subtitle="Manage your farm profile information"
+      title="Farm Details"
+      subtitle="Manage your farm details"
     >
       <div className="h-full overflow-auto">
         <div className="max-w-5xl mx-auto space-y-6">
-          {/* Header */}
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <MapPin className="h-6 w-6 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Farm Profile
-              </h1>
-            </div>
-          </Card>
-
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-md">
               <p className="text-sm text-red-600">{error}</p>
