@@ -55,11 +55,10 @@ export default function CustomerDashboard() {
         <div className="relative container mx-auto px-4 py-12">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">
-              Fresh Produce Market
+              {t('heroTitle')}
             </h1>
             <p className="text-lg text-white/90 mb-8 drop-shadow-md">
-              Discover the freshest fruits, vegetables, and farm products directly from local
-              farmers
+              {t('heroSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -68,7 +67,7 @@ export default function CustomerDashboard() {
                 className="flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-100 shadow-lg"
               >
                 <Sparkles className="h-5 w-5" />
-                Browse All Products
+                {t('browseAllProducts')}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -79,13 +78,13 @@ export default function CustomerDashboard() {
       {/* Categories Section */}
       <div className="bg-muted/50 py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-8">Shop by Category</h2>
+          <h2 className="text-2xl font-bold text-center mb-8">{t('shopByCategory')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: 'Vegetables', id: 1, image: vegetables },
-              { name: 'Fruits', id: 2, image: fruits },
-              { name: 'Grains', id: 3, image: grains },
-              { name: 'Dairy', id: 4, image: dairy },
+              { name: t('vegetables'), id: 1, image: vegetables },
+              { name: t('fruits'), id: 2, image: fruits },
+              { name: t('grains'), id: 3, image: grains },
+              { name: t('dairy'), id: 4, image: dairy },
             ].map((category) => (
               <Card
                 key={category.id}
@@ -108,15 +107,15 @@ export default function CustomerDashboard() {
       <div className="container mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Featured Products</h2>
-            <p className="text-muted-foreground">Fresh picks from our farmers</p>
+            <h2 className="text-2xl font-bold mb-2">{t('featuredProducts')}</h2>
+            <p className="text-muted-foreground">{t('featuredProductsDesc')}</p>
           </div>
           <Button
             variant="outline"
             onClick={() => navigate('/search')}
             className="flex items-center gap-2"
           >
-            View All
+            {t('viewAll')}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
@@ -143,9 +142,9 @@ export default function CustomerDashboard() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">No products available at the moment.</div>
+            <div className="text-muted-foreground mb-4">{t('noProductsFound')}</div>
             <Button variant="outline" onClick={() => window.location.reload()}>
-              Refresh
+              {t('refresh')}
             </Button>
           </div>
         )}

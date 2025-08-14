@@ -131,7 +131,7 @@ export default function TopNavLayout({ children, className }) {
                 className="hidden md:flex items-center gap-2"
               >
                 <Home className="h-4 w-4" />
-                Home
+                {t('home')}
               </Button>
             </div>
 
