@@ -176,6 +176,10 @@ const FarmerProducts = () => {
                       src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
                       alt={product.localized_name || product.name}
                       className="w-full h-full object-cover"
+                      onError={e => {
+                        e.target.onerror = null;
+                        e.target.src = `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`;
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">

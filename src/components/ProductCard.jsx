@@ -147,6 +147,10 @@ export function ProductCard({ product, className, ...props }) {
               src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
               alt={product.localized_name || product.name}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={e => {
+                e.target.onerror = null;
+                e.target.src = `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`;
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">

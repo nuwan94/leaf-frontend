@@ -59,6 +59,10 @@ export function CartItem({ item, className, ...props }) {
             alt={item.name || item.product?.name}
             className="w-full h-full object-cover"
             loading="lazy"
+            onError={e => {
+              e.target.onerror = null;
+              e.target.src = `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`;
+            }}
           />
         ) : (
           <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs font-medium">
