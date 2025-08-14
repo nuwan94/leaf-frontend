@@ -153,7 +153,7 @@ const FarmerProducts = () => {
                     </span>
                   )}
                   <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300 mt-1">
-                    <span className="font-bold text-lg">
+                    <span className="font-bold text-lg flex items-center gap-1">
                       {t('Rs')} {(!!product.is_seasonal_deal || !!product.is_flash_deal) && discountPercent !== null ? (
                         <>
                           <span className="line-through text-gray-400 mr-1">{product.price}</span>
@@ -161,6 +161,9 @@ const FarmerProducts = () => {
                         </>
                       ) : (
                         product.price
+                      )}
+                      {product.amount_per_unit && product.unit && (
+                        <span className="text-xs text-gray-500 ml-2 font-normal">/ {product.amount_per_unit} {product.unit}</span>
                       )}
                     </span>
                     <span className="font-bold text-lg flex items-center gap-2">

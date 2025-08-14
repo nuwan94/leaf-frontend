@@ -175,13 +175,13 @@ export function ProductCard({ product, className, ...props }) {
                   <span className="font-bold text-xl text-green-700 dark:text-green-400">
                     {formatPrice(product.discounted_price)}
                     <span className="text-base text-gray-500 ml-1">
-                      /{product.unit || t('perItem')}
+                      /{product.amount_per_unit ? `${product.amount_per_unit} ` : ''}{product.unit || t('perItem')}
                     </span>
                   </span>
                   <span className="line-through text-gray-400 text-lg">
                     {formatPrice(product.price)}
                     <span className="text-base text-gray-400 ml-1">
-                      /{product.unit || t('perItem')}
+                      /{product.amount_per_unit ? `${product.amount_per_unit} ` : ''}{product.unit || t('perItem')}
                     </span>
                   </span>
                 </>
@@ -189,7 +189,7 @@ export function ProductCard({ product, className, ...props }) {
                 <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
                   {formatPrice(product.price)}
                   <span className="text-base text-gray-500 ml-1">
-                    /{product.unit || t('perItem')}
+                    /{product.amount_per_unit ? `${product.amount_per_unit} ` : ''}{product.unit || t('perItem')}
                   </span>
                 </span>
               )}
