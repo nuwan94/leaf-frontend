@@ -3,12 +3,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui/select';
 import { useTranslation, Trans } from 'react-i18next';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { provinces, citiesByProvince } from '@/lib/sri-lanka-location-data';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import metadataService from '@/lib/services/metadataService';
 
 export function SignupForm({
   form,
@@ -16,17 +22,24 @@ export function SignupForm({
   showPassword,
   setShowPassword,
   isLoading,
-  onSwitchToLogin
+  onSwitchToLogin,
 }) {
   const { t } = useTranslation();
   const selectedRole = form.watch('role');
-  const [selectedProvince, setSelectedProvince] = useState(form.watch('province') || '');
-  const cities = selectedProvince ? citiesByProvince[selectedProvince] || [] : [];
+  const [districts, setDistricts] = useState([]);
+
+  useEffect(() => {
+    async function fetchDistricts() {
+      const districts = await metadataService.getDistricts();
+      setDistricts(Array.isArray(districts) ? districts : []);
+    }
+    fetchDistricts();
+  }, []);
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
       <div className="grid gap-3">
-        <Label>{t('role')}</Label>
+        <Label>{t('selectRole')}</Label>
         <ToggleGroup
           type="single"
           value={form.watch('role')}
@@ -178,160 +191,91 @@ export function SignupForm({
         </div>
       </div>
 
-      {/* Province and City Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="grid gap-3">
-          <Label htmlFor="signup-province">Province *</Label>
-          <Select
-            value={selectedProvince}
-            onValueChange={value => {
-              setSelectedProvince(value);
-              form.setValue('province', value);
-              form.setValue('city', '');
-            }}
-            disabled={isLoading}
-          >
-            <SelectTrigger id="signup-province" className={cn('w-full', form.formState.errors.province && 'border-destructive')}>
-              <SelectValue placeholder="Select province" />
-            </SelectTrigger>
-            <SelectContent>
-              {provinces.map(p => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {form.formState.errors.province && (
-            <p className="text-sm text-destructive">Province is required</p>
-          )}
-        </div>
-        <div className="grid gap-3">
-          <Label htmlFor="signup-city">City *</Label>
-          <Select
-            value={form.watch('city')}
-            onValueChange={value => form.setValue('city', value)}
-            disabled={isLoading || !selectedProvince}
-          >
-            <SelectTrigger id="signup-city" className={cn('w-full', form.formState.errors.city && 'border-destructive')}>
-              <SelectValue placeholder={selectedProvince ? 'Select city' : 'Select province first'} />
-            </SelectTrigger>
-            <SelectContent>
-              {cities.map(city => (
-                <SelectItem key={city} value={city}>{city}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {form.formState.errors.city && (
-            <p className="text-sm text-destructive">City is required</p>
-          )}
-        </div>
+      {/* Address Section - moved above farm details */}
+      <div className="grid gap-3">
+        <Label htmlFor="signup-address">{t('address')} *</Label>
+        <Input
+          id="signup-address"
+          {...form.register('address')}
+          className={cn(form.formState.errors.address && 'border-destructive')}
+          disabled={isLoading}
+        />
+        {form.formState.errors.address && (
+          <p className="text-sm text-destructive">
+            {t(form.formState.errors.address.message)}
+          </p>
+        )}
+      </div>
+      <div className="grid gap-3">
+        <Label htmlFor="signup-district">{t('district')} *</Label>
+        <Select
+          value={form.watch('district')}
+          onValueChange={value => form.setValue('district', value)}
+          disabled={isLoading}
+        >
+          <SelectTrigger id="signup-district" className={cn('w-full', form.formState.errors.district && 'border-destructive')}>
+            <SelectValue placeholder={t('selectDistrict')} />
+          </SelectTrigger>
+          <SelectContent>
+            {districts.map(district => (
+              <SelectItem key={district.id} value={district.name}>{district.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {form.formState.errors.district && (
+          <p className="text-sm text-destructive">
+            {t(form.formState.errors.district.message)}
+          </p>
+        )}
       </div>
 
       {/* Farmer-specific fields */}
       {selectedRole === 'farmer' && (
         <>
-          {/* Farm Details Section */}
-            <h3 className="text-lg font-semibold text-primary mb-2">{t('farmDetails')}</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-3">
-                <Label htmlFor="signup-farmName">{t('farmName')} *</Label>
-                <Input
-                  id="signup-farmName"
-                  {...form.register('farm_name')}
-                  className={cn(form.formState.errors.farm_name && 'border-destructive')}
-                  disabled={isLoading}
-                />
-                {form.formState.errors.farm_name && (
-                  <p className="text-sm text-destructive">
-                    {t(form.formState.errors.farm_name.message)}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid gap-3">
-                <Label htmlFor="signup-farmSize">{t('farmSize')} *</Label>
-                <Input
-                  id="signup-farmSize"
-                  type="number"
-                  step="0.01"
-                  {...form.register('farm_size')}
-                  className={cn(form.formState.errors.farm_size && 'border-destructive')}
-                  disabled={isLoading}
-                />
-                {form.formState.errors.farm_size && (
-                  <p className="text-sm text-destructive">
-                    {t(form.formState.errors.farm_size.message)}
-                  </p>
-                )}
-              </div>
-            </div>
-
+          <div className="grid gap-4">
             <div className="grid gap-3">
-              <Label htmlFor="signup-farmAddress">{t('farmAddress')} *</Label>
-              <Textarea
-                id="signup-farmAddress"
-                {...form.register('farm_address')}
-                className={cn(form.formState.errors.farm_address && 'border-destructive')}
-                disabled={isLoading}
-                rows={3}
-              />
-              {form.formState.errors.farm_address && (
-                <p className="text-sm text-destructive">
-                  {t(form.formState.errors.farm_address.message)}
-                </p>
-              )}
-            </div>
-
-            <div className="grid gap-3">
-              <Label htmlFor="signup-farmingExperience">{t('farmingExperience')} *</Label>
+              <Label htmlFor="signup-farmName">{t('farmName')} *</Label>
               <Input
-                id="signup-farmingExperience"
-                type="number"
-                {...form.register('farming_experience')}
-                className={cn(form.formState.errors.farming_experience && 'border-destructive')}
+                id="signup-farmName"
+                {...form.register('farm_name')}
+                className={cn(form.formState.errors.farm_name && 'border-destructive')}
                 disabled={isLoading}
               />
-              {form.formState.errors.farming_experience && (
+              {form.formState.errors.farm_name && (
                 <p className="text-sm text-destructive">
-                  {t(form.formState.errors.farming_experience.message)}
+                  {t(form.formState.errors.farm_name.message)}
                 </p>
               )}
             </div>
-
-          {/* Bank Details Section */}
-            <h3 className="text-lg font-semibold text-primary mb-2">{t('bankDetails')}</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-3">
-                <Label htmlFor="signup-bankName">{t('bankName')}</Label>
-                <Input
-                  id="signup-bankName"
-                  {...form.register('bank_name')}
-                  className={cn(form.formState.errors.bank_name && 'border-destructive')}
-                  disabled={isLoading}
-                />
-                {form.formState.errors.bank_name && (
-                  <p className="text-sm text-destructive">
-                    {t(form.formState.errors.bank_name.message)}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid gap-3">
-                <Label htmlFor="signup-bankAccountNumber">{t('bankAccountNumber')}</Label>
-                <Input
-                  id="signup-bankAccountNumber"
-                  {...form.register('bank_account_number')}
-                  className={cn(form.formState.errors.bank_account_number && 'border-destructive')}
-                  disabled={isLoading}
-                />
-                {form.formState.errors.bank_account_number && (
-                  <p className="text-sm text-destructive">
-                    {t(form.formState.errors.bank_account_number.message)}
-                  </p>
-                )}
-              </div>
+            <div className="grid gap-3">
+              <Label htmlFor="signup-bankName">{t('bankName')} *</Label>
+              <Input
+                id="signup-bankName"
+                {...form.register('bank_name')}
+                className={cn(form.formState.errors.bank_name && 'border-destructive')}
+                disabled={isLoading}
+              />
+              {form.formState.errors.bank_name && (
+                <p className="text-sm text-destructive">
+                  {t(form.formState.errors.bank_name.message)}
+                </p>
+              )}
             </div>
+            <div className="grid gap-3">
+              <Label htmlFor="signup-bankAccountNumber">{t('bankAccountNumber')} *</Label>
+              <Input
+                id="signup-bankAccountNumber"
+                {...form.register('bank_account_number')}
+                className={cn(form.formState.errors.bank_account_number && 'border-destructive')}
+                disabled={isLoading}
+              />
+              {form.formState.errors.bank_account_number && (
+                <p className="text-sm text-destructive">
+                  {t(form.formState.errors.bank_account_number.message)}
+                </p>
+              )}
+            </div>
+          </div>
         </>
       )}
 

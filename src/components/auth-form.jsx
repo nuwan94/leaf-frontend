@@ -28,15 +28,14 @@ const signupSchema = z
     email: z.string().min(1, 'emailRequired').email('emailInvalid'),
     phone: z.string().min(1, 'phoneRequired'),
     role: z.string().min(1, 'roleRequired'),
+    district: z.string().nonempty('districtRequired'),
     password: z.string().min(8, 'passwordTooShort'),
     confirmPassword: z.string().min(1, 'confirmPasswordRequired'),
     // Farmer-specific fields (conditional)
     farm_name: z.string().optional(),
-    farm_size: z.string().optional(),
-    farm_address: z.string().optional(),
-    farming_experience: z.string().optional(),
     bank_name: z.string().optional(),
     bank_account_number: z.string().optional(),
+    address: z.string().min(1, 'addressRequired'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'passwordMismatch',
@@ -45,12 +44,13 @@ const signupSchema = z
   .refine((data) => {
     // If role is farmer, farm fields are required
     if (data.role === 'farmer') {
-      return data.farm_name && data.farm_size && data.farm_address && data.farming_experience;
+      return data.farm_name && data.bank_name && data.bank_account_number && data.address && data.district;
     }
-    return true;
+    // For other roles, only address and district are required
+    return data.address && data.district;
   }, {
-    message: 'Farm details are required for farmers',
-    path: ['farm_name'],
+    message: 'Address and district are required',
+    path: ['address'],
   });
 
 export function AuthForm({ className, ...props }) {
@@ -79,6 +79,11 @@ export function AuthForm({ className, ...props }) {
       role: '',
       password: '',
       confirmPassword: '',
+      address: '',
+      district: '',
+      farm_name: '',
+      bank_name: '',
+      bank_account_number: '',
     },
   });
 
@@ -88,19 +93,11 @@ export function AuthForm({ className, ...props }) {
   const onSubmit = async (data) => {
     try {
       if (mode === 'login') {
-        // Use the new login method from useAuth hook
         const user = await login({
           email: data.email,
           password: data.password,
         });
-
-        console.log('Login successful:', user);
-
-        // Only redirect on successful login
         if (user) {
-          console.log('Login successful, user logged in:', user);
-
-          // Direct redirect without showing success screen
           navigate('/');
         }
       } else {
@@ -112,6 +109,8 @@ export function AuthForm({ className, ...props }) {
           phone: data.phone,
           role: data.role,
           password: data.password,
+          address: data.address,
+          district_id: data.district,
         };
 
         // Register the basic user account first
@@ -133,9 +132,7 @@ export function AuthForm({ className, ...props }) {
               try {
                 const farmerProfileData = {
                   farm_name: data.farm_name,
-                  farm_size: parseFloat(data.farm_size),
-                  farm_address: data.farm_address,
-                  farming_experience: parseInt(data.farming_experience),
+                  district_id: data.district,
                   bank_name: data.bank_name || null,
                   bank_account_number: data.bank_account_number || null,
                 };
