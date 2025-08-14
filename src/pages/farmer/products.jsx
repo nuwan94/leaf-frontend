@@ -1,67 +1,62 @@
+
 import { useEffect, useState } from 'react';
 import SidebarLayout from '@/components/layouts/SidebarLayout.jsx';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Camera, CheckCircle2, Loader2, PlusCircle, Trash2, Pencil } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Loader2, PlusCircle, Trash2, Pencil, Save } from 'lucide-react';
 import { farmerService } from '@/lib/services';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import ProductForm from '@/components/farmer/AddEditProduct.jsx';
 
-const productSchema = z.object({
-  name: z.string().min(2, 'Product name is required'),
-  price: z.string().min(1, 'Price is required'),
-  category_id: z.string().min(1, 'Category is required'),
-  status: z.enum(['active', 'inactive']).default('active'),
-});
+
 
 const FarmerProducts = () => {
   const [products, setProducts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  const [inventoryState, setInventoryState] = useState({});
-  const [savingInventoryId, setSavingInventoryId] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [productImages, setProductImages] = useState({}); // Track image changes per product
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [editProduct, setEditProduct] = useState(null);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-    watch,
-    setValue,
-  } = useForm({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: '',
-      price: '',
-      category_id: '',
-      status: 'active',
-      image: null,
-    },
-  });
+  // Removed unused state: savingInventoryId, error, isLoading
+  const [editProduct, setEditProduct] = useState(null);
+  // For inline inventory editing
+  const [inventoryEdits, setInventoryEdits] = useState({});
+  const [savingInventory, setSavingInventory] = useState(null);
+  // Inline inventory update handler
+  const handleInventoryInput = (productId, value) => {
+    setInventoryEdits((prev) => ({ ...prev, [productId]: value }));
+  };
+
+  const handleSaveInventory = async (productId) => {
+    setSavingInventory(productId);
+    try {
+      const qty = Number(inventoryEdits[productId]);
+      if (!Number.isFinite(qty) || qty < 0) {
+        toast.error('Invalid quantity');
+        setSavingInventory(null);
+        return;
+      }
+      await farmerService.updateInventory(productId, { quantity_available: qty });
+      toast.success('Inventory updated!');
+      setInventoryEdits((prev) => ({ ...prev, [productId]: undefined }));
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.message || 'Failed to update inventory');
+    } finally {
+      setSavingInventory(null);
+    }
+  };
+
+
+  // Removed unused reset function
 
   const fetchProducts = async () => {
-    setIsLoading(true);
     try {
       const response = await farmerService.getProducts();
       if (response.success && Array.isArray(response.data)) {
         setProducts(response.data);
-      } else {
-        setError(response.message || 'Failed to load products');
       }
     } catch (err) {
-      setError(err.message || 'Failed to load products');
-    } finally {
-      setIsLoading(false);
+      // Optionally handle error
     }
   };
 
@@ -86,89 +81,14 @@ const FarmerProducts = () => {
     }
   };
 
-  const handleInventoryChange = (productId, field, value) => {
-    setInventoryState((prev) => ({
-      ...prev,
-      [productId]: {
-        ...prev[productId],
-        [field]: value,
-      },
-    }));
-  };
 
-  // Add function to handle image change
-  const handleImageChange = (productId, file) => {
-    setProductImages((prev) => ({
-      ...prev,
-      [productId]: file,
-    }));
-  };
-
-  const handleSaveInventory = async (productId) => {
-    setSavingInventoryId(productId);
-    const product = products.find((p) => p.id === productId);
-    const state = inventoryState[productId] || {};
-    const imageFile = productImages[productId];
-
-    const name = state.name !== undefined ? state.name : product.name;
-    const quantity_available =
-      state.quantity_available !== undefined
-        ? parseInt(state.quantity_available)
-        : product.quantity_available;
-    const price = state.price !== undefined ? parseFloat(state.price) : product.price;
-
-    try {
-      // Check if we have image changes
-      if (imageFile) {
-        // Use FormData for image updates with other changes
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('price', price);
-        formData.append('image', imageFile);
-
-        // Update product with image and name
-        await farmerService.updateProduct(productId, formData);
-
-        // Update inventory separately
-        await farmerService.updateInventory(productId, { quantity_available });
-
-        // Clear the image from state after successful upload
-        setProductImages((prev) => {
-          const newState = { ...prev };
-          delete newState[productId];
-          return newState;
-        });
-      } else {
-        // Handle regular inventory, price, and name updates without image
-        await farmerService.updateProduct(productId, { name, price });
-        await farmerService.updateInventory(productId, { quantity_available });
-      }
-
-      toast.success('Product updated!');
-      fetchProducts();
-    } catch (err) {
-      toast.error(err.message || 'Failed to update product');
-    } finally {
-      setSavingInventoryId(null);
-    }
-  };
 
   const handleStatusChange = async (productId, is_active) => {
-    setSavingInventoryId(productId);
     try {
       await farmerService.updateProduct(productId, { is_active });
-      setInventoryState((prev) => ({
-        ...prev,
-        [productId]: {
-          ...prev[productId],
-          is_active,
-        },
-      }));
       fetchProducts();
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
-    } finally {
-      setSavingInventoryId(null);
     }
   };
 
@@ -243,7 +163,34 @@ const FarmerProducts = () => {
                         product.price
                       )}
                     </span>
-                    <span className="font-bold text-lg">Qty: {product.quantity_available}</span>
+                    <span className="font-bold text-lg flex items-center gap-2">
+                      Qty:
+                      <input
+                        type="number"
+                        min="0"
+                        className="w-16 px-1 py-0.5 border rounded text-center text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                        value={
+                          inventoryEdits[product.id] !== undefined
+                            ? inventoryEdits[product.id]
+                            : product.quantity_available
+                        }
+                        onChange={e => handleInventoryInput(product.id, e.target.value)}
+                        disabled={savingInventory === product.id}
+                      />
+                      <button
+                        className="ml-1 p-1 rounded bg-primary text-white hover:bg-primary/90 disabled:opacity-60"
+                        title="Save Inventory"
+                        onClick={() => handleSaveInventory(product.id)}
+                        disabled={savingInventory === product.id || inventoryEdits[product.id] === undefined || inventoryEdits[product.id] == product.quantity_available}
+                        type="button"
+                      >
+                        {savingInventory === product.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                      </button>
+                    </span>
                   </div>
                 </div>
                 {/* Actions row */}
@@ -288,16 +235,9 @@ const FarmerProducts = () => {
         {/* Add New Product / Edit Product Modal */}
         <ProductForm
           open={!!showAddModal || !!editProduct}
-          onOpenChange={(val) => {
+          onOpenChange={() => {
             setShowAddModal(false);
             setEditProduct(null);
-            reset({
-              name: '',
-              price: '',
-              category_id: '',
-              status: 'active',
-              image: null,
-            });
           }}
           onProductAdded={fetchProducts}
           product={editProduct ? { ...editProduct, product_id: editProduct.id } : null}
