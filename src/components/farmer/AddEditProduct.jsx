@@ -25,6 +25,11 @@ const unitOptions = [
 
 const productSchema = z.object({
 	name: z.string().min(2, 'Product name is required'),
+	localized_names: z.object({
+		en: z.string().nullable().transform(val => val ?? ''),
+		si: z.string().nullable().transform(val => val ?? ''),
+		ta: z.string().nullable().transform(val => val ?? ''),
+	}).optional(),
 	price: z.string().min(1, 'Price is required'),
 	category_id: z.string().min(1, 'Category is required'),
 	unit: z.string().min(1, 'Unit is required'),
@@ -58,31 +63,37 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 	const [categories, setCategories] = useState([]);
 
 	// Set up default values for add/edit
-		const defaultValues = product
-				? {
-								name: product.name || '',
-								price: product.price ? String(product.price) : '',
-								category_id: product.category_id ? String(product.category_id) : '',
-								unit: product.unit || '',
-								amount_per_unit: product.amount_per_unit ? String(product.amount_per_unit) : '1',
-								status: product.status || 'active',
-								image: null,
-								is_seasonal_deal: !!product.is_seasonal_deal,
-								is_flash_deal: !!product.is_flash_deal,
-								discounted_price: product.discounted_price ? String(product.discounted_price) : '',
+	const defaultValues = product
+		? {
+						name: product.name || '',
+						localized_names: {
+							en: (product.localized_names?.en ?? ''),
+							si: (product.localized_names?.si ?? ''),
+							ta: (product.localized_names?.ta ?? ''),
+						},
+						price: product.price ? String(product.price) : '',
+						category_id: product.category_id ? String(product.category_id) : '',
+						unit: product.unit || '',
+						amount_per_unit: product.amount_per_unit ? String(product.amount_per_unit) : '1',
+						status: product.status || 'active',
+						image: null,
+						is_seasonal_deal: !!product.is_seasonal_deal,
+						is_flash_deal: !!product.is_flash_deal,
+						discounted_price: product.discounted_price ? String(product.discounted_price) : '',
 					}
-				: {
-								name: '',
-								price: '',
-								category_id: '',
-								unit: '',
-								amount_per_unit: '1',
-								status: 'active',
-								image: null,
-								is_seasonal_deal: false,
-								is_flash_deal: false,
-								discounted_price: '',
-					};
+		: {
+			name: '',
+			localized_names: { en: '', si: '', ta: '' },
+			price: '',
+			category_id: '',
+			unit: '',
+			amount_per_unit: '1',
+			status: 'active',
+			image: null,
+			is_seasonal_deal: false,
+			is_flash_deal: false,
+			discounted_price: '',
+		};
 
 	const {
 		register,
@@ -138,8 +149,49 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 		setIsSubmitting(true);
 		setErrors({});
 		try {
+			// Only check for changes in edit mode
+			if (product && product.product_id) {
+				// Compare all relevant fields
+				const orig = {
+					name: product.name || '',
+					localized_names: {
+						en: product.localized_names?.en ?? '',
+						si: product.localized_names?.si ?? '',
+						ta: product.localized_names?.ta ?? '',
+					},
+					price: String(product.price ?? ''),
+					category_id: String(product.category_id ?? ''),
+					unit: product.unit || '',
+					amount_per_unit: String(product.amount_per_unit ?? '1'),
+					status: product.status || 'active',
+					is_seasonal_deal: !!product.is_seasonal_deal,
+					is_flash_deal: !!product.is_flash_deal,
+					discounted_price: String(product.discounted_price ?? ''),
+				};
+				const changed =
+					data.name !== orig.name ||
+					data.localized_names.en !== orig.localized_names.en ||
+					data.localized_names.si !== orig.localized_names.si ||
+					data.localized_names.ta !== orig.localized_names.ta ||
+					data.price !== orig.price ||
+					data.category_id !== orig.category_id ||
+					data.unit !== orig.unit ||
+					data.amount_per_unit !== orig.amount_per_unit ||
+					data.status !== orig.status ||
+					data.is_seasonal_deal !== orig.is_seasonal_deal ||
+					data.is_flash_deal !== orig.is_flash_deal ||
+					data.discounted_price !== orig.discounted_price ||
+					!!selectedImage;
+				if (!changed) {
+					toast.info('No changes to save.');
+					setIsSubmitting(false);
+					onOpenChange(false);
+					return;
+				}
+			}
 			const formData = new FormData();
 			formData.append('name', data.name);
+			formData.append('localized_names', JSON.stringify(data.localized_names));
 			formData.append('price', parseFloat(data.price));
 			formData.append('category_id', parseInt(data.category_id));
 			formData.append('unit', data.unit);
@@ -207,7 +259,7 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="name" className="mb-1">
-								Product Name *
+								Product Name (Default) *
 							</Label>
 							<Input
 								id="name"
@@ -218,6 +270,39 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 								<p className="text-xs text-red-500 mt-1">
 									{formErrors.name?.message || errors?.name}
 								</p>
+							)}
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label className="mb-1">Product Name (English)</Label>
+							<Input
+								{...register('localized_names.en')}
+								autoComplete="off"
+								placeholder="English name"
+							/>
+							{formErrors.localized_names?.en?.message && (
+								<p className="text-xs text-red-500 mt-1">{formErrors.localized_names.en.message}</p>
+							)}
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label className="mb-1">Product Name (සිංහල)</Label>
+							<Input
+								{...register('localized_names.si')}
+								autoComplete="off"
+								placeholder="සිංහල නම"
+							/>
+							{formErrors.localized_names?.si?.message && (
+								<p className="text-xs text-red-500 mt-1">{formErrors.localized_names.si.message}</p>
+							)}
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label className="mb-1">Product Name (தமிழ்)</Label>
+							<Input
+								{...register('localized_names.ta')}
+								autoComplete="off"
+								placeholder="தமிழ் பெயர்"
+							/>
+							{formErrors.localized_names?.ta?.message && (
+								<p className="text-xs text-red-500 mt-1">{formErrors.localized_names.ta.message}</p>
 							)}
 						</div>
 						<div className="flex flex-col gap-2">

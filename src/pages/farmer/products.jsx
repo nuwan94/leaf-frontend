@@ -11,8 +11,11 @@ import ProductForm from '@/components/farmer/AddEditProduct.jsx';
 import { useTranslation } from 'react-i18next';
 
 const FarmerProducts = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -37,8 +40,9 @@ const FarmerProducts = () => {
       }
       await farmerService.updateInventory(productId, { quantity_available: qty });
       toast.success('Inventory updated!');
-      setInventoryEdits((prev) => ({ ...prev, [productId]: undefined }));
-      fetchProducts();
+  setInventoryEdits((prev) => ({ ...prev, [productId]: undefined }));
+  fetchProducts(1);
+  setPage(1);
     } catch (err) {
       toast.error(err.message || 'Failed to update inventory');
     } finally {
@@ -49,20 +53,47 @@ const FarmerProducts = () => {
 
   // Removed unused reset function
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (pageToLoad = 1, searchValue = "") => {
+    setLoading(true);
     try {
-      const response = await farmerService.getProducts();
+      const response = await farmerService.getProducts({ page: pageToLoad, limit: 12, filters: searchValue ? { name: searchValue } : {} });
       if (response.success && Array.isArray(response.data)) {
-        setProducts(response.data);
+        if (pageToLoad === 1) {
+          setProducts(response.data);
+        } else {
+          setProducts(prev => [...prev, ...response.data]);
+        }
+        setHasMore(response.pagination?.has_next ?? false);
       }
-    } catch (err) {
+    } catch {
       // Optionally handle error
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts(1);
+    setPage(1);
   }, []);
+
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 300 &&
+        hasMore &&
+        !loading
+      ) {
+        const nextPage = page + 1;
+        fetchProducts(nextPage);
+        setPage(nextPage);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [page, hasMore, loading]);
 
   const handleDeleteProduct = async (productId) => {
     setDeletingId(productId);
@@ -70,7 +101,8 @@ const FarmerProducts = () => {
       const response = await farmerService.deleteProduct(productId);
       if (response.success) {
         toast.success('Product deleted successfully!');
-        fetchProducts();
+        fetchProducts(1);
+        setPage(1);
       } else {
         toast.error(response.message || 'Failed to delete product');
       }
@@ -85,29 +117,36 @@ const FarmerProducts = () => {
 
   const handleStatusChange = async (productId, is_active) => {
     try {
-      await farmerService.updateProduct(productId, { is_active });
-      fetchProducts();
+  await farmerService.updateProduct(productId, { is_active });
+  fetchProducts(1);
+  setPage(1);
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
     }
   };
 
   return (
-    <SidebarLayout role="farmer" title={t('myProducts')} subtitle={t('manageAndViewYourFarmProducts')}>
-      <div className="">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-          {/* Add Product Card */}
-          <div
-            className="relative p-4 flex flex-col gap-2 items-center justify-center border-2 border-dashed border-primary rounded-lg min-h-[220px] cursor-pointer hover:bg-primary/5 transition"
-            style={{ minHeight: '220px' }}
-            onClick={() => setShowAddModal(true)}
-          >
-            <PlusCircle className="h-8 w-8 text-primary mb-2" />
-            <h2 className="text-lg font-semibold text-primary mb-1">Add New Product</h2>
-            <div className="text-sm text-primary/80 mb-1 text-center">
-              Click to add a new product to your catalog
-            </div>
-          </div>
+    <SidebarLayout
+      role="farmer"
+      title={
+        <>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+            {t('myProducts')}
+          </h1>
+        </>
+      }
+      subtitle={t('manageAndViewYourFarmProducts')}
+    >
+      {/* Floating Add New Product Button (FAB) */}
+      <button
+        className="fixed top-2 right-8 z-50 flex items-center justify-center gap-1.5 px-3 h-10 rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary/30"
+        onClick={() => setShowAddModal(true)}
+        aria-label={t('addNewProduct') || 'Add New Product'}
+      >
+        <PlusCircle className="h-5 w-5" />
+        <span className="font-semibold text-sm hidden md:inline">{t('addNewProduct') || 'Add New Product'}</span>
+      </button>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 mt-4">
           {/* Existing product cards */}
           {products.map((product) => {
             // Calculate discount percentage if discounted_price exists and is less than price
@@ -122,19 +161,36 @@ const FarmerProducts = () => {
               );
             }
             return (
-              <Card key={product.id} className="p-0 flex flex-col border border-gray-200 rounded-lg shadow-sm bg-white dark:bg-gray-900 overflow-hidden gap-2">
+              <Card
+                key={product.id}
+                className={`p-0 flex flex-col rounded-lg shadow-sm overflow-hidden gap-2 
+                  ${product.is_seasonal_deal ? 'border-2 border-orange-500 bg-orange-50 dark:bg-orange-900/30' : ''}
+                  ${product.is_flash_deal ? 'border-2 border-pink-600 bg-pink-50 dark:bg-pink-900/30' : ''}
+                  ${!product.is_seasonal_deal && !product.is_flash_deal ? 'border border-gray-200 bg-white dark:bg-gray-900' : ''}
+                `}
+              >
                 {/* Image cover */}
                 <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                   {product.image_url ? (
                     <img
                       src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
-                      alt={product.name}
+                      alt={product.localized_name || product.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
                       No Image
                     </div>
+                  )}
+                  {/* Deal badges */}
+                  {(!!product.is_seasonal_deal || !!product.is_flash_deal) && (
+                    <span className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold shadow 
+                      ${product.is_seasonal_deal ? 'bg-orange-500 text-white' : ''}
+                      ${product.is_flash_deal ? 'bg-pink-600 text-white' : ''}
+                    `}>
+                      {product.is_seasonal_deal ? 'Seasonal Deal' : ''}
+                      {product.is_flash_deal ? 'Flash Deal' : ''}
+                    </span>
                   )}
                   {discountPercent !== null && (
                     <span className="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded shadow">
@@ -145,7 +201,7 @@ const FarmerProducts = () => {
                 {/* Info section */}
                 <div className="px-3 py-2 flex flex-col gap-1 flex-1">
                   <div className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
-                    {product.name}
+                    {product.localized_names?.[i18n.language] || product.localized_name || product.name}
                   </div>
                   {product.category && (
                     <span className="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full mb-1">
@@ -234,18 +290,29 @@ const FarmerProducts = () => {
               </Card>
             );
           })}
-        </div>
-        {/* Add New Product / Edit Product Modal */}
-        <ProductForm
-          open={!!showAddModal || !!editProduct}
-          onOpenChange={() => {
-            setShowAddModal(false);
-            setEditProduct(null);
-          }}
-          onProductAdded={fetchProducts}
-          product={editProduct ? { ...editProduct, product_id: editProduct.id } : null}
-        />
       </div>
+      {/* Infinite scroll loader */}
+      {loading && (
+        <div className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      )}
+      {!hasMore && products.length > 0 && (
+        <div className="flex justify-center py-4 text-gray-500 text-sm">No more products to load.</div>
+      )}
+      {/* Add New Product / Edit Product Modal */}
+      <ProductForm
+        open={!!showAddModal || !!editProduct}
+        onOpenChange={() => {
+          setShowAddModal(false);
+          setEditProduct(null);
+        }}
+        onProductAdded={() => {
+          fetchProducts(1);
+          setPage(1);
+        }}
+        product={editProduct ? { ...editProduct, product_id: editProduct.id } : null}
+      />
     </SidebarLayout>
   );
 };

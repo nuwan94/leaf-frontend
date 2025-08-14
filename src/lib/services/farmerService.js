@@ -40,12 +40,13 @@ export const farmerService = {
   },
 
   // Get Farmer Products
-  getProducts: async (farmerId = null) => {
+  getProducts: async ({ farmerId = null, page = 1, limit = 10, filters = {} } = {}) => {
     const id = farmerId || getCurrentFarmerId();
     if (!id) {
       throw new Error('Farmer ID is required');
     }
-    const response = await api.get(`/farmer/${id}/products`);
+    const params = { page, limit, ...filters };
+    const response = await api.get(`/farmer/${id}/products`, { params });
     return response.data;
   },
 

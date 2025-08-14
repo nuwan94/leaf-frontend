@@ -19,9 +19,17 @@ export const useAuth = () => {
       await authService.login(credentials); // sets session cookie
       // Fetch user profile after login
       const profile = await userService.getProfile();
-      setUser(profile.data);
+      // Map role_id to role name
+      const roleMap = { 1: 'admin', 2: 'customer', 3: 'farmer', 4: 'delivery-agent' };
+      const userWithRole = {
+        ...profile.data,
+        role: roleMap[profile.data.role_id] || 'customer',
+      };
+      setUser(userWithRole);
       setIsAuthenticated(true);
-      return profile.data;
+      // Store user in localStorage for DynamicHome
+      localStorage.setItem('user', JSON.stringify(userWithRole));
+      return userWithRole;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;

@@ -145,7 +145,7 @@ export function ProductCard({ product, className, ...props }) {
           {product.image_url ? (
             <img
               src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
-              alt={product.name}
+              alt={product.localized_name || product.name}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
@@ -160,7 +160,7 @@ export function ProductCard({ product, className, ...props }) {
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
-                  {product.name}
+                  {product.localized_name || product.name}
                 </h3>
               </div>
               {product.category && (
