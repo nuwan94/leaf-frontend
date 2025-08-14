@@ -31,7 +31,12 @@ export function SignupForm({
   useEffect(() => {
     async function fetchDistricts() {
       const districts = await metadataService.getDistricts();
-      setDistricts(Array.isArray(districts) ? districts : []);
+      // Convert to [{ value, label }] for Select
+      setDistricts(
+        Array.isArray(districts)
+          ? districts.map((d) => ({ value: String(d.id), label: d.name }))
+          : []
+      );
     }
     fetchDistricts();
   }, []);
@@ -216,7 +221,7 @@ export function SignupForm({
           </SelectTrigger>
           <SelectContent>
             {districts.map(district => (
-              <SelectItem key={district.id} value={district.id}>{district.name}</SelectItem>
+              <SelectItem key={district.value} value={district.value}>{district.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
