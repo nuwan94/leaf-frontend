@@ -1,3 +1,4 @@
+import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthForm } from '@/components/auth-form';
 import { AccessibilityControls } from '@/components/accessibility-controls';
@@ -40,6 +41,11 @@ const App = () => {
               <Route path="/farmer" element={<FarmerHome />} />
               <Route path="/farmer/farm-details" element={<FarmDetails />} />
               <Route path="/farmer/products" element={<FarmerProducts />} />
+              <Route path="/farmer/orders" element={
+                <React.Suspense fallback={<div>Loading...</div>}>
+                  {React.createElement(React.lazy(() => import('./pages/farmer/orders.jsx')))}
+                </React.Suspense>
+              } />
               <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
               <Route path="/customer" element={<CustomerHome />} />
 

@@ -9,6 +9,16 @@ const getCurrentFarmerId = () => {
 
 // Farmer-specific API endpoints
 export const farmerService = {
+  // Get Orders for Farmer
+  getOrders: async (farmerId = null) => {
+    const id = farmerId || getCurrentFarmerId();
+    if (!id) {
+      throw new Error('Farmer ID is required');
+    }
+    // Assumes backend endpoint: /farmer/:id/orders
+    const response = await api.get(`/farmer/${id}/orders`);
+    return response.data;
+  },
   // Get Farmer Profile
   getFarmDetails: async (farmerId = null) => {
     const id = farmerId || getCurrentFarmerId();

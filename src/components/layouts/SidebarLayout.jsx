@@ -67,8 +67,8 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
     farmer: [
       { icon: Home, label: t('dashboard'), href: '/' },
       { icon: Tractor, label: t('farmDetails'), href: '/farmer/farm-details' },
-      { icon: Package, label: t('myProducts'), href: '/farmer/products', disabled: false },
-      { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders', disabled: true },
+  { icon: Package, label: t('myProducts'), href: '/farmer/products', disabled: false },
+  { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders', disabled: false },
       { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics', disabled: true },
       { icon: Settings, label: t('profile'), href: '/profile' },
     ],
