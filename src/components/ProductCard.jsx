@@ -21,17 +21,25 @@ import {
 
 export function ProductCard({ product, className, ...props }) {
   // Only show discount if discounted_price and price are valid numbers, price > 0, and discounted_price < price
-  // Only show discount if discounted_price and price are valid numbers, price > 0, and discounted_price < price
   const priceNum = Number(product.price);
   const discountedNum = Number(product.discounted_price);
   const hasDiscount =
     (product.is_seasonal_deal || product.is_flash_deal) &&
-    product.discounted_price !== null &&
-    product.discounted_price !== undefined &&
+    product.discounted_price != null &&
     !isNaN(discountedNum) &&
     !isNaN(priceNum) &&
     priceNum > 0 &&
     discountedNum < priceNum;
+
+  function DiscountBadge() {
+    if (!hasDiscount) return null;
+    const percent = Math.round((100 * (priceNum - discountedNum)) / priceNum);
+    return (
+      <span className="absolute top-2 right-2 bg-red-600 text-white text-base font-bold px-3 py-1 rounded-lg shadow-lg z-30 drop-shadow-xl animate-bounce group-hover:animate-none">
+        -{percent}%
+      </span>
+    );
+  }
   const { addToCart, updateCartItem, removeFromCart, isInCart, getCartItem, isLoading } = useCart();
   const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
@@ -130,15 +138,7 @@ export function ProductCard({ product, className, ...props }) {
         {/* Product Image with Discount Badge */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted rounded-t-none p-0 m-0">
           {/* Discount badge: top right of image, animated, red bg */}
-          {hasDiscount &&
-            (() => {
-              const percent = Math.round((100 * (priceNum - discountedNum)) / priceNum);
-              return (
-                <span className="absolute top-2 right-2 bg-red-600 text-white text-base font-bold px-3 py-1 rounded-lg shadow-lg z-30 drop-shadow-xl animate-bounce group-hover:animate-none">
-                  -{percent}%
-                </span>
-              );
-            })()}
+          <DiscountBadge />
           {product.image_url ? (
             <img
               src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}

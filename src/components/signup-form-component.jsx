@@ -280,14 +280,7 @@ export function SignupForm({
       )}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('creatingAccount')}
-          </>
-        ) : (
-          t('createAccount')
-        )}
+        {t('createAccount')}
       </Button>
 
       <div className="text-center text-sm">

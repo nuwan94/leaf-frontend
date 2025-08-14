@@ -8,6 +8,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { productService } from '@/lib/services';
 import { Grid, List, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export function ProductCatalog({
   className,
@@ -18,6 +19,7 @@ export function ProductCatalog({
   ...props
 }) {
   const { t } = useTranslation();
+    const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -105,19 +107,7 @@ export function ProductCatalog({
 
   // Clear all filters
   const clearFilters = () => {
-    if (onFiltersChange) {
-      onFiltersChange({
-        name: '',
-        category_id: '',
-        brand: '',
-        min_price: '',
-        max_price: '',
-        limit: 16,
-        sort_by: 'name',
-        sort_order: 'asc'
-      });
-    }
-    setCurrentPage(1);
+    navigate('/search'); // Reset to default search page
   };
 
   // Handle pagination

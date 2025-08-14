@@ -189,12 +189,6 @@ export default function CartPage() {
                           )}
                         </span>
                       </div>
-
-                      {cart.subtotal > 100 && (
-                        <div className="text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md">
-                          ✓ {t('freeShippingApplied')}
-                        </div>
-                      )}
                     </div>
 
                     <hr className="border-gray-200 dark:border-gray-600" />
@@ -234,10 +228,6 @@ export default function CartPage() {
                       <div className="flex items-center gap-2">
                         <span className="w-1 h-1 bg-green-500 rounded-full"></span>
                         <span>{t('secureCheckout')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
-                        <span>{t('freeShippingOver', { amount: formatPrice(100) })}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-1 h-1 bg-purple-500 rounded-full"></span>
