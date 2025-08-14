@@ -368,7 +368,7 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 						</div>
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="price" className="mb-1">
-								Price (Rs.) *
+								{t('price')} ({t('Rs')}.) *
 							</Label>
 							<Input
 								id="price"

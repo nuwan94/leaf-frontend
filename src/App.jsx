@@ -14,7 +14,6 @@ import CartPage from '@/pages/cart';
 import Checkout from '@/pages/cart/checkout.jsx';
 import SearchPage from '@/pages/search';
 import Profile from '@/pages/profile';
-import { TokenStatus } from '@/components/TokenStatus.jsx';
 import { CartProvider } from '@/lib/hooks/useCart.jsx';
 import { Toaster } from '@/components/ui/sonner';
 import FarmerProducts from '@/pages/farmer/products.jsx';
@@ -25,7 +24,6 @@ const App = () => {
     <CartProvider>
       <div className="bg-muted h-screen flex flex-col">
         <div className="flex-1 min-h-0">
-          <TokenStatus />
           <Routes>
             {/* Dynamic root route - shows appropriate dashboard based on user role */}
             <Route path="/" element={<DynamicHome />} />

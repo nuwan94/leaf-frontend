@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/lib/token-utils';
+import { useAuth } from '@/lib/hooks/useAuth';
 import AdminHome from '@/pages/admin';
 import CustomerHome from '@/pages/customer';
 import FarmerHome from '@/pages/farmer';
@@ -10,7 +10,7 @@ import DeliveryAgentHome from '@/pages/delivery-agent';
  */
 export function DynamicHome() {
   // Get current user and determine which component to render
-  const user = getCurrentUser();
+  const { user } = useAuth();
 
   // If user is authenticated, render their role-specific dashboard
   if (user && user.role) {
