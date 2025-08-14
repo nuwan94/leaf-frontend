@@ -172,7 +172,7 @@ export default function Profile() {
       const response = await userService.deleteAccount(data.password);
       if (response.success) {
         await logout();
-        navigate('/login');
+        navigate('/');
       }
     } catch (error) {
       console.error('Failed to delete account:', error);

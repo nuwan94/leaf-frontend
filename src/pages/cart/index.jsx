@@ -28,7 +28,7 @@ export default function CartPage() {
   };
 
   const handleContinueShopping = () => {
-    navigate(-1); // Go back to previous page
+    navigate('/search'); // Go back to previous page
   };
 
   const handleCheckout = () => {
