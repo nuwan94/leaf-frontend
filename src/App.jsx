@@ -19,50 +19,54 @@ import { Toaster } from '@/components/ui/sonner';
 import FarmerProducts from '@/pages/farmer/products.jsx';
 import AdminLocalization from '@/pages/admin/localization.jsx';
 
+import { UserProvider } from '@/lib/UserContext';
+
 const App = () => {
   return (
-    <CartProvider>
-      <div className="bg-muted h-screen flex flex-col">
-        <div className="flex-1 min-h-0">
-          <Routes>
-            {/* Dynamic root route - shows appropriate dashboard based on user role */}
-            <Route path="/" element={<DynamicHome />} />
+    <UserProvider>
+      <CartProvider>
+        <div className="bg-muted h-screen flex flex-col">
+          <div className="flex-1 min-h-0">
+            <Routes>
+              {/* Dynamic root route - shows appropriate dashboard based on user role */}
+              <Route path="/" element={<DynamicHome />} />
 
-            {/* Public routes */}
-            <Route path="/login" element={<AuthForm />} />
-            <Route path="/search" element={<SearchPage />} />
+              {/* Public routes */}
+              <Route path="/login" element={<AuthForm />} />
+              <Route path="/search" element={<SearchPage />} />
 
-            {/* Protected routes for authenticated users */}
-            <Route element={<ProtectedRoute />}>
-              {/* Specific role routes (alternative access paths) */}
-              <Route path="/admin" element={<AdminHome />} />
-              <Route path="/farmer" element={<FarmerHome />} />
-              <Route path="/farmer/farm-details" element={<FarmDetails />} />
-              <Route path="/farmer/products" element={<FarmerProducts />} />
-              <Route path="/farmer/orders" element={
-                <React.Suspense fallback={<div>Loading...</div>}>
-                  {React.createElement(React.lazy(() => import('./pages/farmer/orders.jsx')))}
-                </React.Suspense>
-              } />
-              <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
-              <Route path="/customer" element={<CustomerHome />} />
+              {/* Protected routes for authenticated users */}
+              <Route element={<ProtectedRoute />}>
+                {/* Specific role routes (alternative access paths) */}
+                <Route path="/admin" element={<AdminHome />} />
+                <Route path="/farmer" element={<FarmerHome />} />
+                <Route path="/farmer/farm-details" element={<FarmDetails />} />
+                <Route path="/farmer/products" element={<FarmerProducts />} />
+                <Route path="/farmer/orders" element={
+                  <React.Suspense fallback={<div>Loading...</div>}>
+                    {React.createElement(React.lazy(() => import('./pages/farmer/orders.jsx')))}
+                  </React.Suspense>
+                } />
+                <Route path="/delivery-agent" element={<DeliveryAgentHome />} />
+                <Route path="/customer" element={<CustomerHome />} />
 
-              {/* Other protected routes */}
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/cart/checkout" element={<Checkout />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/customer/orders" element={<OrderHistory />} />
-              <Route path="/admin/localization" element={<AdminLocalization />} />
-            </Route>
+                {/* Other protected routes */}
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/cart/checkout" element={<Checkout />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/customer/orders" element={<OrderHistory />} />
+                <Route path="/admin/localization" element={<AdminLocalization />} />
+              </Route>
 
-            {/* Fallback to home for unknown routes */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Fallback to home for unknown routes */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+          <AccessibilityControls />
+          <Toaster richColors  position="top-right" />
         </div>
-        <AccessibilityControls />
-        <Toaster richColors  position="top-right" />
-      </div>
-    </CartProvider>
+      </CartProvider>
+    </UserProvider>
   );
 };
 

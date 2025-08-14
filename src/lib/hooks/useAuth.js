@@ -1,20 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useContext, useCallback } from 'react';
 import { authService, userService } from '@/lib/services';
+import { UserContext } from '@/lib/UserContext';
 
 /**
  * Custom hook for managing authentication state and token refresh
  * @returns {object} - Authentication state and methods
  */
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // No token/refresh logic needed for session-based auth
-
+  const { user, setUser, loading, setProfile } = useContext(UserContext);
   // Login function (session-based)
   const login = useCallback(async (credentials) => {
-    setIsLoading(true);
     try {
       await authService.login(credentials); // sets session cookie
       // Fetch user profile after login
@@ -26,17 +21,14 @@ export const useAuth = () => {
         role: roleMap[profile.data.role_id] || 'customer',
       };
       setUser(userWithRole);
-      setIsAuthenticated(true);
-      // Store user in localStorage for DynamicHome
+      setProfile(profile.data);
       localStorage.setItem('user', JSON.stringify(userWithRole));
       return userWithRole;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  }, [setUser, setProfile]);
 
   // Logout function
   const logout = useCallback(async () => {
@@ -46,38 +38,16 @@ export const useAuth = () => {
       console.error('Logout API call failed:', error);
     } finally {
       setUser(null);
-      setIsAuthenticated(false);
+      setProfile(null);
+      localStorage.removeItem('user');
     }
-  }, []);
+  }, [setUser, setProfile]);
 
-  // Check authentication status on mount (session-based)
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const profile = await userService.getProfile();
-        // Map role_id to role name for consistency
-        const roleMap = { 1: 'admin', 2: 'customer', 3: 'farmer', 4: 'delivery-agent' };
-        const userWithRole = {
-          ...profile.data,
-          role: roleMap[profile.data.role_id] || 'customer',
-        };
-        setUser(userWithRole);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userWithRole));
-      } catch {
-        setUser(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('user');
-      }
-      setIsLoading(false);
-    };
-    checkAuth();
-  }, []);
 
   return {
     user,
-    isLoading,
-    isAuthenticated,
+    isLoading: loading,
+    isAuthenticated: !!user,
     login,
     logout,
   };

@@ -32,19 +32,19 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
   // Mock reviews for demonstration
   const mockReviews = [
     {
-      user: { name: 'Nuwan Perera', avatar_url: '/default-avatar.png' },
+      user: { name: 'Kasun De Alwis', avatar_url: '/default-avatar.png' },
       timeAgo: '2 days ago',
       rating: 4.5,
       text: 'Very fresh and tasty! Delivery was quick and packaging was great. Will order again.'
     },
     {
-      user: { name: 'Ishara Silva', avatar_url: '/default-avatar.png' },
+      user: { name: 'Piyumi Silva', avatar_url: '/default-avatar.png' },
       timeAgo: '1 week ago',
       rating: 5,
       text: 'Absolutely loved the quality. The vegetables were crisp and the price was reasonable.'
     },
     {
-      user: { name: 'Kavindu Jayasuriya', avatar_url: '/default-avatar.png' },
+      user: { name: 'Kavindu Madusanka', avatar_url: '/default-avatar.png' },
       timeAgo: '3 weeks ago',
       rating: 4,
       text: 'Good value for money. Some items were a bit small but overall satisfied.'
