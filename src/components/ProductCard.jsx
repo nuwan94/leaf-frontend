@@ -19,6 +19,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+import { useState as useDialogState } from 'react';
+import ProductDetailsDialog from '@/components/ProductDetailsDialog';
+
 export function ProductCard({ product, className, ...props }) {
   // Only show discount if discounted_price and price are valid numbers, price > 0, and discounted_price < price
   const priceNum = Number(product.price);
@@ -46,13 +49,14 @@ export function ProductCard({ product, className, ...props }) {
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [isAdding, setIsAdding] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useDialogState(false);
 
   const cartItem = getCartItem(product.id);
   const inCart = isInCart(product.id);
 
-  const handleAddToCart = async () => {
+  // Only allow add to cart from inside the dialog, not from the card
+    const handleAddToCart = async () => {
     if (!isAuthenticated) {
       setShowAlert(true);
       return;
@@ -134,31 +138,37 @@ export function ProductCard({ product, className, ...props }) {
     <>
       <Card
         className={cn('overflow-hidden h-fit group gap-1 relative py-0', className)}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         {...props}
       >
-        {/* Product Image with Discount Badge */}
+        {/* Product Image with Discount Badge and Eye Icon */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted rounded-t-none p-0 m-0">
-          {/* Discount badge: top right of image, animated, red bg */}
           <DiscountBadge />
           {product.image_url ? (
             <img
               src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
               alt={product.localized_name || product.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+              onClick={e => {
+                e.stopPropagation();
+                setDetailsOpen(true);
+              }}
               onError={e => {
                 e.target.onerror = null;
                 e.target.src = `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`;
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground cursor-pointer"
+              onClick={e => {
+                e.stopPropagation();
+                setDetailsOpen(true);
+              }}
+            >
               <ShoppingCart className="h-8 w-8" />
             </div>
           )}
         </div>
-        <CardContent className="p-3 flex flex-col gap-4">
+  <CardContent className="p-3 flex flex-col gap-4">
           {/* Product Info */}
           <div>
             <div className="flex flex-col gap-1">
@@ -178,20 +188,12 @@ export function ProductCard({ product, className, ...props }) {
             </div>
             <div className="flex flex-col gap-1 mt-2">
               {hasDiscount ? (
-                <>
-                  <span className="font-bold text-xl text-green-700 dark:text-green-400">
-                    {formatPrice(product.discounted_price)}
-                    <span className="text-base text-gray-500 ml-1">
-                      /{product.amount_per_unit ? `${product.amount_per_unit} ` : ''}{product.unit || t('perItem')}
-                    </span>
+                <span className="font-bold text-xl text-green-700 dark:text-green-400">
+                  {formatPrice(product.discounted_price)}
+                  <span className="text-base text-gray-500 ml-1">
+                    /{product.amount_per_unit ? `${product.amount_per_unit} ` : ''}{product.unit || t('perItem')}
                   </span>
-                  <span className="line-through text-gray-400 text-lg">
-                    {formatPrice(product.price)}
-                    <span className="text-base text-gray-400 ml-1">
-                      /{product.amount_per_unit ? `${product.amount_per_unit} ` : ''}{product.unit || t('perItem')}
-                    </span>
-                  </span>
-                </>
+                </span>
               ) : (
                 <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
                   {formatPrice(product.price)}
@@ -240,8 +242,15 @@ export function ProductCard({ product, className, ...props }) {
           </div>
         </CardContent>
       </Card>
+      {/* Product Details Dialog */}
+      <ProductDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        productId={product.id}
+        fetchProductDetails={async (id) => product}
+      />
 
-      {/* Login Required Alert */}
+  {/* Login Required Alert */}
       <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>

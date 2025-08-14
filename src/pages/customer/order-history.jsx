@@ -100,9 +100,6 @@ export default function OrderHistory() {
                       <div className="font-semibold text-gray-700 mb-2">{t('items') || 'Items'}</div>
                       {order.items.map(item => (
                         <div key={item.id} className="py-2 flex items-center gap-3">
-                          {item.image_url && (
-                            <img src={import.meta.env.VITE_IMAGE_HOST_BASE_URL + item.image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded" />
-                          )}
                           <div className="flex-1">
                             <div className="font-medium">{item.product_name}</div>
                             <div className="text-xs text-gray-500">

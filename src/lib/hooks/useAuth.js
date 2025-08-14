@@ -55,11 +55,19 @@ export const useAuth = () => {
     const checkAuth = async () => {
       try {
         const profile = await userService.getProfile();
-        setUser(profile.data);
+        // Map role_id to role name for consistency
+        const roleMap = { 1: 'admin', 2: 'customer', 3: 'farmer', 4: 'delivery-agent' };
+        const userWithRole = {
+          ...profile.data,
+          role: roleMap[profile.data.role_id] || 'customer',
+        };
+        setUser(userWithRole);
         setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(userWithRole));
       } catch {
         setUser(null);
         setIsAuthenticated(false);
+        localStorage.removeItem('user');
       }
       setIsLoading(false);
     };
