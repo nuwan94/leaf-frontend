@@ -8,6 +8,8 @@ import { userService } from '@/lib/services/userService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Combobox } from '@/components/ui/combobox';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +17,7 @@ import SidebarLayout from '@/components/layouts/SidebarLayout';
 import TopNavLayout from '@/components/layouts/TopNavLayout';
 import { User, Lock, Trash2, Save, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import metadataService from '@/lib/services/metadataService';
 
 // Validation schemas
 const profileSchema = z.object({
@@ -22,10 +25,7 @@ const profileSchema = z.object({
   last_name: z.string().min(1, 'lastNameRequired'),
   phone: z.string().regex(/^[\+]?[0-9\-\(\)\s]+$/, 'invalidPhoneFormat').optional().or(z.literal('')),
   address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postal_code: z.string().optional(),
-  country: z.string().optional(),
+  district: z.string().min(1, 'districtRequired'),
 });
 
 const passwordSchema = z.object({
@@ -46,6 +46,7 @@ export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
+  const [districtOptions, setDistrictOptions] = useState([]);
 
   // Profile form
   const profileForm = useForm({
@@ -55,10 +56,7 @@ export default function Profile() {
       last_name: '',
       phone: '',
       address: '',
-      city: '',
-      state: '',
-      postal_code: '',
-      country: 'Bangladesh',
+      district: '',
     },
   });
 
@@ -79,7 +77,7 @@ export default function Profile() {
     },
   });
 
-  // Load profile data on mount
+  // Load profile data and district options on mount
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -91,10 +89,7 @@ export default function Profile() {
             last_name: response.data.last_name || '',
             phone: response.data.phone || '',
             address: response.data.address || '',
-            city: response.data.city || '',
-            state: response.data.state || '',
-            postal_code: response.data.postal_code || '',
-            country: response.data.country || 'Bangladesh',
+            district: response.data.district || '',
           });
         }
       } catch (error) {
@@ -108,7 +103,23 @@ export default function Profile() {
       }
     };
 
+    const loadDistricts = async () => {
+      try {
+        // metadataService.getDistricts() returns an array of strings (district names)
+        const districts = await metadataService.getDistricts();
+        // Convert to [{ value, label }] for Select
+        setDistrictOptions(
+          Array.isArray(districts)
+            ? districts.map((d) => ({ value: d.id, label: d.name }))
+            : []
+        );
+      } catch {
+        setDistrictOptions([]);
+      }
+    };
+
     loadProfile();
+    loadDistricts();
   }, [profileForm]);
 
   // Handle profile update
@@ -286,7 +297,6 @@ export default function Profile() {
                             <Input
                               id="phone"
                               {...profileForm.register('phone')}
-                              placeholder="+880XXXXXXXXX"
                               className={cn(
                                 "transition-colors",
                                 profileForm.formState.errors.phone && 'border-destructive focus-visible:ring-destructive'
@@ -301,61 +311,33 @@ export default function Profile() {
                         </div>
                       </div>
 
-                      {/* Address Information Section */}
+                      {/* Address and District Section (no header, compact district dropdown) */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('addressInformation')}</h3>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="address" className="text-sm font-medium">{t('address')}</Label>
-                            <Input
-                              id="address"
-                              {...profileForm.register('address')}
-                              placeholder={t('enterYourAddress')}
-                              className="transition-colors"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="city" className="text-sm font-medium">{t('city')}</Label>
-                              <Input
-                                id="city"
-                                {...profileForm.register('city')}
-                                placeholder={t('enterYourCity')}
-                                className="transition-colors"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="state" className="text-sm font-medium">{t('state')}</Label>
-                              <Input
-                                id="state"
-                                {...profileForm.register('state')}
-                                placeholder={t('enterYourState')}
-                                className="transition-colors"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="postal_code" className="text-sm font-medium">{t('postalCode')}</Label>
-                              <Input
-                                id="postal_code"
-                                {...profileForm.register('postal_code')}
-                                placeholder={t('enterPostalCode')}
-                                className="transition-colors"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="country" className="text-sm font-medium">{t('country')}</Label>
-                            <Input
-                              id="country"
-                              {...profileForm.register('country')}
-                              placeholder={t('enterYourCountry')}
-                              className="transition-colors"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="address" className="text-sm font-medium">{t('address')}</Label>
+                          <Textarea
+                            id="address"
+                            {...profileForm.register('address')}
+                            className="transition-colors min-h-[80px]"
+                          />
+                        </div>
+                        <div className="space-y-2 w-48">
+                          <Label htmlFor="district" className="text-sm font-medium">{t('district')}</Label>
+                          <Combobox
+                            options={districtOptions}
+                            value={profileForm.watch('district')}
+                            labelKey="label"
+                            valueKey="value"
+                            onChange={val => profileForm.setValue('district', val, { shouldValidate: true })}
+                            buttonClassName={cn('w-full', 'h-9 text-sm', profileForm.formState.errors.district && 'border-destructive focus-visible:ring-destructive')}
+                            contentClassName="w-48"
+                            disabled={districtOptions.length === 0}
+                          />
+                          {profileForm.formState.errors.district && (
+                            <p className="text-sm text-destructive">
+                              {t(profileForm.formState.errors.district.message)}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -382,7 +364,7 @@ export default function Profile() {
                           ) : (
                             <Save className="h-4 w-4" />
                           )}
-                          {t('saveChanges')}
+                          {t('save')}
                         </Button>
                       </div>
                     </form>
@@ -521,7 +503,6 @@ export default function Profile() {
                                 id="delete_password"
                                 type="password"
                                 {...deleteForm.register('password')}
-                                placeholder={t('enterYourPassword')}
                                 className={cn(
                                   "transition-colors",
                                   deleteForm.formState.errors.password && 'border-destructive focus-visible:ring-destructive'

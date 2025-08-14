@@ -95,7 +95,7 @@ const FarmerProducts = () => {
   return (
     <SidebarLayout role="farmer" title="My Products" subtitle="Manage and view your farm products">
       <div className="">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {/* Add Product Card */}
           <div
             className="relative p-4 flex flex-col gap-2 items-center justify-center border-2 border-dashed border-primary rounded-lg min-h-[220px] cursor-pointer hover:bg-primary/5 transition"

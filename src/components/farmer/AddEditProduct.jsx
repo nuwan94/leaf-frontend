@@ -10,7 +10,6 @@ import { z } from 'zod';
 import { farmerService, productService } from '@/lib/services';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 
 const unitOptions = [
@@ -48,7 +47,7 @@ const productSchema = z.object({
 	),
 });
 
-function ProductForm({ open, onOpenChange, onProductAdded, product }) {
+function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth = 'max-w-4xl' }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [selectedImage, setSelectedImage] = useState(null);
 	const [errors, setErrors] = useState({});
@@ -182,9 +181,9 @@ function ProductForm({ open, onOpenChange, onProductAdded, product }) {
 		if (checked) setValue('is_seasonal_deal', false);
 	};
 
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-2xl">
+		return (
+				<Dialog open={open} onOpenChange={onOpenChange}>
+					<DialogContent className={dialogWidth}>
 				<DialogHeader>
 					{product && product.image_url ? (
 						<div className="w-full h-64 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden rounded-t-lg mb-2">
@@ -206,7 +205,6 @@ function ProductForm({ open, onOpenChange, onProductAdded, product }) {
 							<Input
 								id="name"
 								{...register('name')}
-								placeholder="e.g. Tomatoes"
 								autoComplete="off"
 							/>
 							{(formErrors.name || errors?.name) && (

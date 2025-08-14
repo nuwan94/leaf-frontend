@@ -115,7 +115,6 @@ export function SignupForm({
         <Input
           id="signup-email"
           type="email"
-          placeholder="name@example.com"
           {...form.register('email')}
           className={cn(form.formState.errors.email && 'border-destructive')}
           disabled={isLoading}
@@ -132,7 +131,6 @@ export function SignupForm({
         <Input
           id="signup-phone"
           type="tel"
-          placeholder={t('phonePlaceholder')}
           {...form.register('phone')}
           className={cn(form.formState.errors.phone && 'border-destructive')}
           disabled={isLoading}
@@ -214,7 +212,7 @@ export function SignupForm({
           disabled={isLoading}
         >
           <SelectTrigger id="signup-district" className={cn('w-full', form.formState.errors.district && 'border-destructive')}>
-            <SelectValue placeholder={t('selectDistrict')} />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {districts.map(district => (

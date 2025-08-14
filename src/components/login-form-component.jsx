@@ -22,7 +22,6 @@ export function LoginForm({
         <Input
           id="login-email"
           type="email"
-          placeholder="name@example.com"
           {...form.register('email')}
           className={cn(form.formState.errors.email && 'border-destructive')}
           disabled={isLoading}
