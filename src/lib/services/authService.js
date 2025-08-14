@@ -24,6 +24,8 @@ export const authService = {
       password: userData.password,
       first_name: userData.firstName,
       last_name: userData.lastName,
+      address: userData.address,
+      district_id: userData.district_id,
       role_id: ROLE_MAPPING[userData.role] || 1, // Default to customer if role not found
       ...(userData.phone && { phone: userData.phone }), // Add phone if provided
     };

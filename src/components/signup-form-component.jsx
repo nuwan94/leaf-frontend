@@ -218,7 +218,7 @@ export function SignupForm({
           </SelectTrigger>
           <SelectContent>
             {districts.map(district => (
-              <SelectItem key={district.id} value={district.name}>{district.name}</SelectItem>
+              <SelectItem key={district.id} value={district.id}>{district.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

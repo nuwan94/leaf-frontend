@@ -15,9 +15,6 @@ import { farmerService } from '@/lib/services';
 // Profile form validation schema
 const profileSchema = z.object({
   farm_name: z.string().min(2, 'Farm name must be at least 2 characters'),
-  farm_address: z.string().min(10, 'Farm address must be at least 10 characters'),
-  farm_size: z.string().min(1, 'Farm size is required'),
-  farming_experience: z.string().min(1, 'Farming experience is required'),
   bank_name: z.string().optional(),
   bank_account_number: z.string().optional(),
 });
@@ -72,11 +69,10 @@ export default function FarmDetails() {
     setError(null);
 
     try {
-      // Convert string values to appropriate types
+
+      // No need to convert farm_size or farming_experience
       const profileUpdateData = {
         ...data,
-        farm_size: parseFloat(data.farm_size),
-        farming_experience: parseInt(data.farming_experience),
       };
 
       const response = await farmerService.updateFarmDetails(profileUpdateData);
@@ -159,107 +155,73 @@ export default function FarmDetails() {
 
           {/* Single Editable Profile Form */}
           <form onSubmit={handleSubmit(onSubmitProfile)} className="space-y-6">
-            {/* Farm Information */}
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Building2 className="h-5 w-5 text-green-600" />
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Farm Information
-                </h2>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="farm_name" className="text-sm font-medium">Farm Name *</Label>
-                  <Input
-                    id="farm_name"
-                    {...register('farm_name')}
-                    placeholder="Green Valley Farm"
-                    className={`${errors.farm_name ? 'border-red-500' : ''}`}
-                  />
-                  {errors.farm_name && (
-                    <p className="text-xs text-red-500">{errors.farm_name.message}</p>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="farm_size" className="text-sm font-medium">Farm Size (acres) *</Label>
-                  <Input
-                    id="farm_size"
-                    type="number"
-                    step="0.01"
-                    {...register('farm_size')}
-                    placeholder="5.5"
-                    className={`${errors.farm_size ? 'border-red-500' : ''}`}
-                  />
-                  {errors.farm_size && (
-                    <p className="text-xs text-red-500">{errors.farm_size.message}</p>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="farming_experience" className="text-sm font-medium">Experience (years) *</Label>
-                  <Input
-                    id="farming_experience"
-                    type="number"
-                    {...register('farming_experience')}
-                    placeholder="10"
-                    className={`${errors.farming_experience ? 'border-red-500' : ''}`}
-                  />
-                  {errors.farming_experience && (
-                    <p className="text-xs text-red-500">{errors.farming_experience.message}</p>
-                  )}
-                </div>
-
-                <div className="md:col-span-2 lg:col-span-3 space-y-2">
-                  <Label htmlFor="farm_address" className="text-sm font-medium">Farm Address *</Label>
-                  <Textarea
-                    id="farm_address"
-                    {...register('farm_address')}
-                    placeholder="Complete farm address with district and postal code"
-                    className={`${errors.farm_address ? 'border-red-500' : ''}`}
-                    rows={3}
-                  />
-                  {errors.farm_address && (
-                    <p className="text-xs text-red-500">{errors.farm_address.message}</p>
-                  )}
-                </div>
-              </div>
-            </Card>
-
-            {/* Banking & Status Information */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Banking Information */}
-              <Card className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <Mail className="h-5 w-5 text-purple-600" />
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Banking Information
-                  </h2>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bank_name" className="text-sm font-medium">Bank Name</Label>
-                    <Input
-                      id="bank_name"
-                      {...register('bank_name')}
-                      placeholder="Bank of Ceylon"
-                    />
+            {/* Two Column Layout: Left = Farm+Account, Right = Account Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left: Farm & Account Info Card with Update Button */}
+              <Card className="p-6 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <Building2 className="h-5 w-5 text-green-600" />
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      Farm & Account Information
+                    </h2>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="bank_account_number" className="text-sm font-medium">Account Number</Label>
-                    <Input
-                      id="bank_account_number"
-                      {...register('bank_account_number')}
-                      placeholder="1234567890"
-                    />
+                  <div className="space-y-6">
+                    {/* Farm Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="farm_name" className="text-sm font-medium">Farm Name *</Label>
+                      <Input
+                        id="farm_name"
+                        {...register('farm_name')}
+                        placeholder="Green Valley Farm"
+                        className={`${errors.farm_name ? 'border-red-500' : ''}`}
+                      />
+                      {errors.farm_name && (
+                        <p className="text-xs text-red-500">{errors.farm_name.message}</p>
+                      )}
+                    </div>
+                    {/* Bank Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bank_name" className="text-sm font-medium">Bank Name</Label>
+                      <Input
+                        id="bank_name"
+                        {...register('bank_name')}
+                        placeholder="Bank of Ceylon"
+                      />
+                    </div>
+                    {/* Account Number */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bank_account_number" className="text-sm font-medium">Account Number</Label>
+                      <Input
+                        id="bank_account_number"
+                        {...register('bank_account_number')}
+                        placeholder="1234567890"
+                      />
+                    </div>
                   </div>
+                </div>
+                {/* Submit Button */}
+                <div className="pt-6">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 px-8 py-2 w-full justify-center"
+                    size="lg"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {isSubmitting ? 'Updating Profile...' : 'Update Profile'}
+                  </Button>
                 </div>
               </Card>
 
-              {/* Status Information (Read-only) */}
+              {/* Right: Account Status Card */}
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <Calendar className="h-5 w-5 text-orange-600" />
@@ -267,7 +229,6 @@ export default function FarmDetails() {
                     Account Status
                   </h2>
                 </div>
-
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Verification Status</span>
@@ -278,14 +239,12 @@ export default function FarmDetails() {
                       </span>
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Profile Created</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {formatDate(profileData?.created_at)}
                     </span>
                   </div>
-
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Last Updated</span>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -296,22 +255,6 @@ export default function FarmDetails() {
               </Card>
             </div>
 
-            {/* Submit Button */}
-            <div className="flex justify-end pt-6">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex items-center gap-2 px-8 py-2"
-                size="lg"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                {isSubmitting ? 'Updating Profile...' : 'Update Profile'}
-              </Button>
-            </div>
           </form>
         </div>
       </div>
