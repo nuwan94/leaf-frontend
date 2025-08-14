@@ -1,6 +1,8 @@
 import { SidebarLayout } from '@/components/layouts/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PlusCircle, Boxes, BarChart2, DollarSign, Users } from 'lucide-react';
+import AddEditProduct from '@/components/farmer/AddEditProduct';
 import { ProductCatalog } from '@/components/ProductCatalog';
 import { Calendar, Package, ShoppingBag, TrendingUp } from 'lucide-react';
 import { useCurrency } from '@/lib/currency';
@@ -14,8 +16,9 @@ export default function FarmerHome() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddProduct, setShowAddProduct] = useState(false);
 
-  useEffect(() => {
+  const fetchStats = () => {
     if (user?.id) {
       setLoading(true);
       farmerService.getFarmerStats(user.id)
@@ -29,6 +32,10 @@ export default function FarmerHome() {
         .catch((err) => setError(err.message || 'Failed to fetch stats'))
         .finally(() => setLoading(false));
     }
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, [user]);
 
   const statCards = stats ? [
@@ -74,18 +81,50 @@ export default function FarmerHome() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-            <div className="space-y-3">
-              <Button className="w-full justify-start">Add New Product</Button>
-              <Button variant="outline" className="w-full justify-start">
-                Update Inventory
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                View Sales Report
-              </Button>
-            </div>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card
+              className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-primary/10 transition"
+              onClick={() => setShowAddProduct(true)}
+              role="button"
+              tabIndex={0}
+            >
+              <PlusCircle className="h-8 w-8 text-primary mb-2" />
+              <span className="font-semibold">Add New Product</span>
+            </Card>
+            <Card
+              className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-primary/10 transition"
+              role="button"
+              tabIndex={0}
+            >
+              <Users className="h-8 w-8 text-primary mb-2" />
+              <span className="font-semibold">View Customer Feedback</span>
+            </Card>
+            
+            <Card
+              className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-primary/10 transition"
+              role="button"
+              tabIndex={0}
+            >
+              <Boxes className="h-8 w-8 text-primary mb-2" />
+              <span className="font-semibold">Manage Inventory</span>
+            </Card>
+            <Card
+              className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-primary/10 transition"
+              role="button"
+              tabIndex={0}
+            >
+              <BarChart2 className="h-8 w-8 text-primary mb-2" />
+              <span className="font-semibold">Sales Report</span>
+            </Card>
+            <Card
+              className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-primary/10 transition"
+              role="button"
+              tabIndex={0}
+            >
+              <DollarSign className="h-8 w-8 text-primary mb-2" />
+              <span className="font-semibold">Request Payment</span>
+            </Card>
+          </div>
 
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
@@ -94,6 +133,9 @@ export default function FarmerHome() {
             </div>
           </Card>
         </div>
+
+        {/* Add New Product Dialog */}
+  <AddEditProduct open={showAddProduct} onOpenChange={setShowAddProduct} onProductAdded={fetchStats} />
       </div>
     </SidebarLayout>
   );

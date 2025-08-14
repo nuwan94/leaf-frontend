@@ -18,6 +18,7 @@ import TopNavLayout from '@/components/layouts/TopNavLayout';
 import { User, Lock, Trash2, Save, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import metadataService from '@/lib/services/metadataService';
+import { toast } from 'sonner';
 
 // Validation schemas
 const profileSchema = z.object({
@@ -89,7 +90,7 @@ export default function Profile() {
             last_name: response.data.last_name || '',
             phone: response.data.phone || '',
             address: response.data.address || '',
-            district: response.data.district || '',
+            district: response.data.district_id || '',
           });
         }
       } catch (error) {
@@ -125,15 +126,16 @@ export default function Profile() {
   // Handle profile update
   const onUpdateProfile = async (data) => {
     try {
-      const response = await userService.updateProfile(data);
+      const updateData = {
+        ...data,
+        district_id: data.district,
+      }
+      const response = await userService.updateProfile(updateData);
       if (response.success) {
         setProfileData(response.data);
         profileForm.reset(data);
         // Show success message
-        profileForm.setError('root', {
-          type: 'success',
-          message: 'profileUpdatedSuccessfully'
-        });
+        toast.success(t('success'));
       }
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -170,7 +172,7 @@ export default function Profile() {
       const response = await userService.deleteAccount(data.password);
       if (response.success) {
         await logout();
-        window.location.href = '/login';
+        navigate('/login');
       }
     } catch (error) {
       console.error('Failed to delete account:', error);
