@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/hooks/useAuth';
 import SidebarLayout from '@/components/layouts/SidebarLayout.jsx';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 const FarmerProducts = () => {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -38,11 +40,11 @@ const FarmerProducts = () => {
         setSavingInventory(null);
         return;
       }
-      await farmerService.updateInventory(productId, { quantity_available: qty });
+      await farmerService.updateInventory(productId, { quantity_available: qty }, user.id);
       toast.success('Inventory updated!');
-  setInventoryEdits((prev) => ({ ...prev, [productId]: undefined }));
-  fetchProducts(1);
-  setPage(1);
+      setInventoryEdits((prev) => ({ ...prev, [productId]: undefined }));
+      fetchProducts(1);
+      setPage(1);
     } catch (err) {
       toast.error(err.message || 'Failed to update inventory');
     } finally {
@@ -54,9 +56,10 @@ const FarmerProducts = () => {
   // Removed unused reset function
 
   const fetchProducts = async (pageToLoad = 1, searchValue = "") => {
+    if (!user?.id) return;
     setLoading(true);
     try {
-      const response = await farmerService.getProducts({ page: pageToLoad, limit: 12, filters: searchValue ? { name: searchValue } : {} });
+      const response = await farmerService.getProducts({ farmerId: user.id, page: pageToLoad, limit: 12, filters: searchValue ? { name: searchValue } : {} });
       if (response.success && Array.isArray(response.data)) {
         if (pageToLoad === 1) {
           setProducts(response.data);
@@ -73,9 +76,10 @@ const FarmerProducts = () => {
   };
 
   useEffect(() => {
+    if (!user?.id) return;
     fetchProducts(1);
     setPage(1);
-  }, []);
+  }, [user]);
 
 
   // Infinite scroll handler
@@ -98,7 +102,7 @@ const FarmerProducts = () => {
   const handleDeleteProduct = async (productId) => {
     setDeletingId(productId);
     try {
-      const response = await farmerService.deleteProduct(productId);
+      const response = await farmerService.deleteProduct(productId, user.id);
       if (response.success) {
         toast.success('Product deleted successfully!');
         fetchProducts(1);
@@ -117,9 +121,9 @@ const FarmerProducts = () => {
 
   const handleStatusChange = async (productId, is_active) => {
     try {
-  await farmerService.updateProduct(productId, { is_active });
-  fetchProducts(1);
-  setPage(1);
+      await farmerService.updateProduct(productId, { is_active }, user?.id);
+      fetchProducts(1);
+      setPage(1);
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
     }
@@ -129,11 +133,9 @@ const FarmerProducts = () => {
     <SidebarLayout
       role="farmer"
       title={
-        <>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
-            {t('myProducts')}
-          </h1>
-        </>
+        <span className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+          {t('myProducts')}
+        </span>
       }
       subtitle={t('manageAndViewYourFarmProducts')}
     >

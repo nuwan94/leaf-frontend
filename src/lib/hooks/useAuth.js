@@ -1,13 +1,17 @@
 import { useContext, useCallback } from 'react';
 import { authService, userService } from '@/lib/services';
-import { UserContext } from '@/lib/UserContext';
+import { UserContext } from '@/lib/UserContext.js';
 
 /**
  * Custom hook for managing authentication state and token refresh
  * @returns {object} - Authentication state and methods
  */
 export const useAuth = () => {
-  const { user, setUser, loading, setProfile } = useContext(UserContext);
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useAuth must be used within a UserProvider');
+  }
+  const { user, setUser, loading, setProfile } = context;
   // Login function (session-based)
   const login = useCallback(async (credentials) => {
     try {

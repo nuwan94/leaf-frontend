@@ -1,4 +1,4 @@
-import { useUser } from '@/lib/UserContext';
+import { useUser } from '@/lib/UserContext.js';
 import AdminHome from '@/pages/admin';
 import CustomerHome from '@/pages/customer';
 import FarmerHome from '@/pages/farmer';

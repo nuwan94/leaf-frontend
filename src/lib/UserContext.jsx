@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { userService } from '@/lib/services';
 
-export const UserContext = createContext();
+import React, { useState, useEffect } from 'react';
+import { userService } from '@/lib/services';
+import { UserContext } from './UserContext.js';
+
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -39,6 +40,4 @@ export function UserProvider({ children }) {
   );
 }
 
-export function useUser() {
-  return useContext(UserContext);
-}
+

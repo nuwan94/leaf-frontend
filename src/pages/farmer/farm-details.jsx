@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, User, Phone, Mail, Calendar, Building2, Loader2, Save } from 'lucide-react';
 import { farmerService } from '@/lib/services';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 // Profile form validation schema
 const profileSchema = z.object({
@@ -20,6 +21,7 @@ const profileSchema = z.object({
 });
 
 export default function FarmDetails() {
+  const { user } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,11 +38,12 @@ export default function FarmDetails() {
 
   // Load farmer profile on component mount
   useEffect(() => {
+    if (!user?.id) return;
     const loadFarmerProfile = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await farmerService.getFarmDetails();
+        const response = await farmerService.getFarmDetails(user.id);
 
         if (response.success && response.data) {
           setProfileData(response.data);
@@ -62,25 +65,25 @@ export default function FarmDetails() {
     };
 
     loadFarmerProfile();
-  }, [setValue]);
+  }, [setValue, user]);
 
   const onSubmitProfile = async (data) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-
+      if (!user?.id) throw new Error('Farmer ID is required');
       // No need to convert farm_size or farming_experience
       const profileUpdateData = {
         ...data,
       };
 
-      const response = await farmerService.updateFarmDetails(profileUpdateData);
+      const response = await farmerService.updateFarmDetails(profileUpdateData, user.id);
 
       if (response.success) {
         toast.success('Profile updated successfully!');
         // Refresh profile data
-        const updatedResponse = await farmerService.getFarmDetails();
+        const updatedResponse = await farmerService.getFarmDetails(user.id);
         if (updatedResponse.success && updatedResponse.data) {
           setProfileData(updatedResponse.data);
         }

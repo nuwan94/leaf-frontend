@@ -3,9 +3,11 @@ import { farmerService } from '@/lib/services';
 import { Card } from '@/components/ui/card';
 import SidebarLayout from '@/components/layouts/SidebarLayout';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function FarmerOrdersPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +17,7 @@ export default function FarmerOrdersPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await farmerService.getOrders();
+    const response = await farmerService.getOrders(user?.id);
         setOrders(response.data || response.orders || []);
       } catch (err) {
         setError(err.message || 'Failed to load orders');

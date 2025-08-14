@@ -8,6 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { farmerService, productService } from '@/lib/services';
+import { useUser } from '@/lib/UserContext.js';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -56,6 +57,7 @@ const productSchema = z.object({
 });
 
 function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth = 'max-w-4xl' }) {
+	const { user } = useUser();
 	const { t } = useTranslation();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [selectedImage, setSelectedImage] = useState(null);
@@ -145,90 +147,90 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 		fetchCategories();
 	}, []);
 
-	const onSubmit = async (data) => {
-		setIsSubmitting(true);
-		setErrors({});
-		try {
-			// Only check for changes in edit mode
-			if (product && product.product_id) {
-				// Compare all relevant fields
-				const orig = {
-					name: product.name || '',
-					localized_names: {
-						en: product.localized_names?.en ?? '',
-						si: product.localized_names?.si ?? '',
-						ta: product.localized_names?.ta ?? '',
-					},
-					price: String(product.price ?? ''),
-					category_id: String(product.category_id ?? ''),
-					unit: product.unit || '',
-					amount_per_unit: String(product.amount_per_unit ?? '1'),
-					status: product.status || 'active',
-					is_seasonal_deal: !!product.is_seasonal_deal,
-					is_flash_deal: !!product.is_flash_deal,
-					discounted_price: String(product.discounted_price ?? ''),
-				};
-				const changed =
-					data.name !== orig.name ||
-					data.localized_names.en !== orig.localized_names.en ||
-					data.localized_names.si !== orig.localized_names.si ||
-					data.localized_names.ta !== orig.localized_names.ta ||
-					data.price !== orig.price ||
-					data.category_id !== orig.category_id ||
-					data.unit !== orig.unit ||
-					data.amount_per_unit !== orig.amount_per_unit ||
-					data.status !== orig.status ||
-					data.is_seasonal_deal !== orig.is_seasonal_deal ||
-					data.is_flash_deal !== orig.is_flash_deal ||
-					data.discounted_price !== orig.discounted_price ||
-					!!selectedImage;
-				if (!changed) {
-					toast.info('No changes to save.');
-					setIsSubmitting(false);
-					onOpenChange(false);
-					return;
+		const onSubmit = async (data) => {
+			setIsSubmitting(true);
+			setErrors({});
+			try {
+				// Only check for changes in edit mode
+				if (product && product.product_id) {
+					// Compare all relevant fields
+					const orig = {
+						name: product.name || '',
+						localized_names: {
+							en: product.localized_names?.en ?? '',
+							si: product.localized_names?.si ?? '',
+							ta: product.localized_names?.ta ?? '',
+						},
+						price: String(product.price ?? ''),
+						category_id: String(product.category_id ?? ''),
+						unit: product.unit || '',
+						amount_per_unit: String(product.amount_per_unit ?? '1'),
+						status: product.status || 'active',
+						is_seasonal_deal: !!product.is_seasonal_deal,
+						is_flash_deal: !!product.is_flash_deal,
+						discounted_price: String(product.discounted_price ?? ''),
+					};
+					const changed =
+						data.name !== orig.name ||
+						data.localized_names.en !== orig.localized_names.en ||
+						data.localized_names.si !== orig.localized_names.si ||
+						data.localized_names.ta !== orig.localized_names.ta ||
+						data.price !== orig.price ||
+						data.category_id !== orig.category_id ||
+						data.unit !== orig.unit ||
+						data.amount_per_unit !== orig.amount_per_unit ||
+						data.status !== orig.status ||
+						data.is_seasonal_deal !== orig.is_seasonal_deal ||
+						data.is_flash_deal !== orig.is_flash_deal ||
+						data.discounted_price !== orig.discounted_price ||
+						!!selectedImage;
+					if (!changed) {
+						toast.info('No changes to save.');
+						setIsSubmitting(false);
+						onOpenChange(false);
+						return;
+					}
 				}
+				const formData = new FormData();
+				formData.append('name', data.name);
+				formData.append('localized_names', JSON.stringify(data.localized_names));
+				formData.append('price', parseFloat(data.price));
+				formData.append('category_id', parseInt(data.category_id));
+				formData.append('unit', data.unit);
+				formData.append('amount_per_unit', parseFloat(data.amount_per_unit));
+				formData.append('status', data.status);
+				formData.append('is_seasonal_deal', data.is_seasonal_deal ? 1 : 0);
+				formData.append('is_flash_deal', data.is_flash_deal ? 1 : 0);
+				if (selectedImage) {
+					formData.append('image', selectedImage);
+				}
+				if ((data.is_seasonal_deal || data.is_flash_deal) && data.discounted_price) {
+					formData.append('discounted_price', parseFloat(data.discounted_price));
+				}
+				let response;
+				if (product && product.product_id) {
+					// Edit mode
+					response = await farmerService.updateProduct(product.product_id, formData, user?.id);
+				} else {
+					// Add mode
+					response = await farmerService.addProduct(formData, user?.id);
+				}
+				if (response.success) {
+					toast.success(product ? 'Product updated successfully!' : 'Product added successfully!');
+					reset();
+					setSelectedImage(null);
+					onOpenChange(false);
+					if (onProductAdded) onProductAdded();
+				} else {
+					setErrors(response.errors || {});
+					toast.error(response.message || (product ? 'Failed to update product' : 'Failed to add product'));
+				}
+			} catch (err) {
+				toast.error(err.message || (product ? 'Failed to update product' : 'Failed to add product'));
+			} finally {
+				setIsSubmitting(false);
 			}
-			const formData = new FormData();
-			formData.append('name', data.name);
-			formData.append('localized_names', JSON.stringify(data.localized_names));
-			formData.append('price', parseFloat(data.price));
-			formData.append('category_id', parseInt(data.category_id));
-			formData.append('unit', data.unit);
-			formData.append('amount_per_unit', parseFloat(data.amount_per_unit));
-			formData.append('status', data.status);
-			formData.append('is_seasonal_deal', data.is_seasonal_deal ? 1 : 0);
-			formData.append('is_flash_deal', data.is_flash_deal ? 1 : 0);
-			if (selectedImage) {
-				formData.append('image', selectedImage);
-			}
-			if ((data.is_seasonal_deal || data.is_flash_deal) && data.discounted_price) {
-				formData.append('discounted_price', parseFloat(data.discounted_price));
-			}
-			let response;
-			if (product && product.product_id) {
-				// Edit mode
-				response = await farmerService.updateProduct(product.product_id, formData);
-			} else {
-				// Add mode
-				response = await farmerService.addProduct(formData);
-			}
-			if (response.success) {
-				toast.success(product ? 'Product updated successfully!' : 'Product added successfully!');
-				reset();
-				setSelectedImage(null);
-				onOpenChange(false);
-				if (onProductAdded) onProductAdded();
-			} else {
-				setErrors(response.errors || {});
-				toast.error(response.message || (product ? 'Failed to update product' : 'Failed to add product'));
-			}
-		} catch (err) {
-			toast.error(err.message || (product ? 'Failed to update product' : 'Failed to add product'));
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
+		};
 
 	// Only one deal can be checked at a time
 	const handleSeasonalDealChange = (checked) => {
