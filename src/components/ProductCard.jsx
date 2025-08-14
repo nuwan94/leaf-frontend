@@ -20,6 +20,18 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function ProductCard({ product, className, ...props }) {
+  // Only show discount if discounted_price and price are valid numbers, price > 0, and discounted_price < price
+  // Only show discount if discounted_price and price are valid numbers, price > 0, and discounted_price < price
+  const priceNum = Number(product.price);
+  const discountedNum = Number(product.discounted_price);
+  const hasDiscount =
+    (product.is_seasonal_deal || product.is_flash_deal) &&
+    product.discounted_price !== null &&
+    product.discounted_price !== undefined &&
+    !isNaN(discountedNum) &&
+    !isNaN(priceNum) &&
+    priceNum > 0 &&
+    discountedNum < priceNum;
   const { addToCart, updateCartItem, removeFromCart, isInCart, getCartItem, isLoading } = useCart();
   const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
@@ -46,7 +58,7 @@ export function ProductCard({ product, className, ...props }) {
         name: product.name,
         unit: product.unit,
         image_url: product.image_url,
-        brand: product.brand
+        brand: product.brand,
       });
     } catch (error) {
       console.error('Failed to add to cart:', error);
@@ -110,26 +122,23 @@ export function ProductCard({ product, className, ...props }) {
   return (
     <>
       <Card
-        className={cn("overflow-hidden h-fit group relative", className)}
+        className={cn('overflow-hidden h-fit group gap-1 relative py-0', className)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...props}
       >
-        {/* Discount Percentage Overlay - top right of card, not image */}
-        {((product.is_seasonal_deal || product.is_flash_deal) && product.discounted_price && product.discounted_price < product.price) && (
-          (() => {
-            const percent = Math.round(
-              100 * (parseFloat(product.price) - parseFloat(product.discounted_price)) / parseFloat(product.price)
-            );
-            return (
-              <span className="absolute top-3 right-3 bg-red-600 text-white text-base font-bold px-4 py-1 rounded-lg shadow-lg z-30 drop-shadow-xl animate-bounce">
-                -{percent}%
-              </span>
-            );
-          })()
-        )}
-        {/* Product Image with Floating Controls */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {/* Product Image with Discount Badge */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted rounded-t-none p-0 m-0">
+          {/* Discount badge: top right of image, animated, red bg */}
+          {hasDiscount &&
+            (() => {
+              const percent = Math.round((100 * (priceNum - discountedNum)) / priceNum);
+              return (
+                <span className="absolute top-2 right-2 bg-red-600 text-white text-base font-bold px-3 py-1 rounded-lg shadow-lg z-30 drop-shadow-xl animate-bounce group-hover:animate-none">
+                  -{percent}%
+                </span>
+              );
+            })()}
           {product.image_url ? (
             <img
               src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
@@ -161,46 +170,64 @@ export function ProductCard({ product, className, ...props }) {
               )}
             </div>
             <div className="flex flex-col gap-1 mt-2">
-              {((product.is_seasonal_deal || product.is_flash_deal) && product.discounted_price && product.discounted_price < product.price) ? (
+              {hasDiscount ? (
                 <>
                   <span className="font-bold text-xl text-green-700 dark:text-green-400">
                     {formatPrice(product.discounted_price)}
-                    <span className="text-base text-gray-500 ml-1">/{product.unit || t('perItem')}</span>
+                    <span className="text-base text-gray-500 ml-1">
+                      /{product.unit || t('perItem')}
+                    </span>
                   </span>
                   <span className="line-through text-gray-400 text-lg">
                     {formatPrice(product.price)}
-                    <span className="text-base text-gray-400 ml-1">/{product.unit || t('perItem')}</span>
+                    <span className="text-base text-gray-400 ml-1">
+                      /{product.unit || t('perItem')}
+                    </span>
                   </span>
                 </>
               ) : (
                 <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
                   {formatPrice(product.price)}
-                  <span className="text-base text-gray-500 ml-1">/{product.unit || t('perItem')}</span>
+                  <span className="text-base text-gray-500 ml-1">
+                    /{product.unit || t('perItem')}
+                  </span>
                 </span>
               )}
             </div>
           </div>
           {/* Cart Controls - simple, full width, bottom of card */}
           <div>
-            {Number(product.quantity_available) > 0 && (!inCart && isAuthenticated) && (
-              <Button
-                onClick={handleAddToCart}
-                disabled={isAdding || isLoading}
-                className="w-full"
-              >
-                {isAdding ? t('adding') : <><ShoppingCart className="inline-block mr-2 h-4 w-4" />{t('addToCart')}</>}
+            {Number(product.quantity_available) > 0 && !inCart && isAuthenticated && (
+              <Button onClick={handleAddToCart} disabled={isAdding || isLoading} className="w-full">
+                {isAdding ? (
+                  t('adding')
+                ) : (
+                  <>
+                    <ShoppingCart className="inline-block mr-2 h-4 w-4" />
+                    {t('addToCart')}
+                  </>
+                )}
               </Button>
             )}
             {inCart && isAuthenticated && (
               <div className="w-full flex items-center justify-between gap-2 mt-2">
-                <Button onClick={decrementQuantity} className="w-10"> <Minus className="h-4 w-4" /> </Button>
-                <span className="text-base font-medium text-center w-10">{cartItem?.quantity || 0}</span>
-                <Button onClick={incrementQuantity} className="w-10"> <Plus className="h-4 w-4" /> </Button>
+                <Button onClick={decrementQuantity} className="w-10">
+                  {' '}
+                  <Minus className="h-4 w-4" />{' '}
+                </Button>
+                <span className="text-base font-medium text-center w-10">
+                  {cartItem?.quantity || 0}
+                </span>
+                <Button onClick={incrementQuantity} className="w-10">
+                  {' '}
+                  <Plus className="h-4 w-4" />{' '}
+                </Button>
               </div>
             )}
             {!isAuthenticated && (
               <Button onClick={() => setShowAlert(true)} className="w-full">
-                <ShoppingCart className="inline-block mr-2 h-4 w-4" />{t('addToCart')}
+                <ShoppingCart className="inline-block mr-2 h-4 w-4" />
+                {t('addToCart')}
               </Button>
             )}
           </div>
@@ -212,15 +239,11 @@ export function ProductCard({ product, className, ...props }) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('loginRequired')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('loginRequiredToAddToCart')}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t('loginRequiredToAddToCart')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLoginRedirect}>
-              {t('login')}
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleLoginRedirect}>{t('login')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
