@@ -8,10 +8,10 @@ import { farmerService } from '@/lib/services';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import ProductForm from '@/components/farmer/AddEditProduct.jsx';
-
-
+import { useTranslation } from 'react-i18next';
 
 const FarmerProducts = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -93,7 +93,7 @@ const FarmerProducts = () => {
   };
 
   return (
-    <SidebarLayout role="farmer" title="My Products" subtitle="Manage and view your farm products">
+    <SidebarLayout role="farmer" title={t('myProducts')} subtitle={t('manageAndViewYourFarmProducts')}>
       <div className="">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           {/* Add Product Card */}
@@ -154,7 +154,7 @@ const FarmerProducts = () => {
                   )}
                   <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300 mt-1">
                     <span className="font-bold text-lg">
-                      Rs. {(!!product.is_seasonal_deal || !!product.is_flash_deal) && discountPercent !== null ? (
+                      {t('Rs')} {(!!product.is_seasonal_deal || !!product.is_flash_deal) && discountPercent !== null ? (
                         <>
                           <span className="line-through text-gray-400 mr-1">{product.price}</span>
                           <span className="text-green-700 dark:text-green-400 font-bold">{product.discounted_price}</span>
@@ -164,7 +164,7 @@ const FarmerProducts = () => {
                       )}
                     </span>
                     <span className="font-bold text-lg flex items-center gap-2">
-                      Qty:
+                      {t('qty')}:
                       <input
                         type="number"
                         min="0"

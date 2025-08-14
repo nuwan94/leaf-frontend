@@ -35,32 +35,6 @@ import {
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
 
-const roleMenus = {
-  admin: [
-    { icon: Home, label: 'Dashboard', href: '/' },
-    { icon: Users, label: 'Users', href: '/admin/users', disabled: true },
-    { icon: Package, label: 'Products', href: '/admin/products', disabled: true },
-    { icon: ShoppingBag, label: 'Orders', href: '/admin/orders', disabled: true },
-    { icon: BarChart3, label: 'Analytics', href: '/admin/analytics', disabled: true },
-    { icon: Settings, label: 'Settings', href: '/admin/settings', disabled: true },
-    { icon: Flag, label: 'Localization', href: '/admin/localization', disabled: false },
-  ],
-  farmer: [
-    { icon: Home, label: 'Dashboard', href: '/' },
-    { icon: Tractor, label: 'Farm Details', href: '/farmer/farm-details' },
-    { icon: Package, label: 'My Products', href: '/farmer/products', disabled: false },
-    { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders', disabled: true },
-    { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics', disabled: true },
-    { icon: Settings, label: 'Profile', href: '/profile' },
-  ],
-  'delivery-agent': [
-    { icon: Home, label: 'Dashboard', href: '/' },
-    { icon: Truck, label: 'Deliveries', href: '/delivery-agent/deliveries', disabled: true },
-    { icon: MapPin, label: 'Routes', href: '/delivery-agent/routes', disabled: true },
-    { icon: UserCheck, label: 'Profile', href: '/profile' },
-  ],
-};
-
 export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -68,7 +42,6 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
   const location = useLocation();
   const { t } = useTranslation();
   const { logout } = useAuth();
-  const menuItems = roleMenus[role] || roleMenus.admin;
 
   const handleLogout = async () => {
     try {
@@ -80,6 +53,33 @@ export function SidebarLayout({ children, role = 'admin', title, subtitle }) {
       navigate('/login');
     }
   };
+
+  const roleMenus = {
+    admin: [
+      { icon: Home, label: t('dashboard'), href: '/' },
+      { icon: Users, label: 'Users', href: '/admin/users', disabled: true },
+      { icon: Package, label: 'Products', href: '/admin/products', disabled: true },
+      { icon: ShoppingBag, label: 'Orders', href: '/admin/orders', disabled: true },
+      { icon: BarChart3, label: 'Analytics', href: '/admin/analytics', disabled: true },
+      { icon: Settings, label: 'Settings', href: '/admin/settings', disabled: true },
+      { icon: Flag, label: 'Localization', href: '/admin/localization', disabled: false },
+    ],
+    farmer: [
+      { icon: Home, label: t('dashboard'), href: '/' },
+      { icon: Tractor, label: t('farmDetails'), href: '/farmer/farm-details' },
+      { icon: Package, label: t('myProducts'), href: '/farmer/products', disabled: false },
+      { icon: ShoppingBag, label: 'Orders', href: '/farmer/orders', disabled: true },
+      { icon: BarChart3, label: 'Analytics', href: '/farmer/analytics', disabled: true },
+      { icon: Settings, label: t('profile'), href: '/profile' },
+    ],
+    'delivery-agent': [
+      { icon: Home, label: t('dashboard'), href: '/' },
+      { icon: Truck, label: 'Deliveries', href: '/delivery-agent/deliveries', disabled: true },
+      { icon: MapPin, label: 'Routes', href: '/delivery-agent/routes', disabled: true },
+      { icon: UserCheck, label: t('profile'), href: '/profile' },
+    ],
+  };
+  const menuItems = roleMenus[role] || roleMenus.admin;
 
   const handleMenuItemClick = (href) => {
     navigate(href);

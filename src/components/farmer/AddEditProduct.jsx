@@ -11,6 +11,7 @@ import { farmerService, productService } from '@/lib/services';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useTranslation } from 'react-i18next';
 
 const unitOptions = [
 	{ value: 'kg', label: 'Kilogram (kg)' },
@@ -27,12 +28,14 @@ const productSchema = z.object({
 	price: z.string().min(1, 'Price is required'),
 	category_id: z.string().min(1, 'Category is required'),
 	unit: z.string().min(1, 'Unit is required'),
+	amount_per_unit: z.string().min(1, 'Amount per unit is required').refine(val => parseFloat(val) > 0, {
+		message: 'Amount per unit must be greater than 0',
+	}),
 	status: z.enum(['active', 'inactive']).default('active'),
 	is_seasonal_deal: z.boolean().default(false),
 	is_flash_deal: z.boolean().default(false),
 	discounted_price: z.string().refine(
 		(val, ctx) => {
-			// Defensive: ctx and ctx.parent may be undefined in some react-hook-form/zod versions
 			const parent = ctx?.parent || {};
 			const isSeasonal = parent.is_seasonal_deal;
 			const isFlash = parent.is_flash_deal;
@@ -48,35 +51,38 @@ const productSchema = z.object({
 });
 
 function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth = 'max-w-4xl' }) {
+	const { t } = useTranslation();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [selectedImage, setSelectedImage] = useState(null);
 	const [errors, setErrors] = useState({});
 	const [categories, setCategories] = useState([]);
 
 	// Set up default values for add/edit
-	const defaultValues = product
-		? {
-				name: product.name || '',
-				price: product.price ? String(product.price) : '',
-				category_id: product.category_id ? String(product.category_id) : '',
-				unit: product.unit || '',
-				status: product.status || 'active',
-				image: null,
-				is_seasonal_deal: !!product.is_seasonal_deal,
-				is_flash_deal: !!product.is_flash_deal,
-				discounted_price: product.discounted_price ? String(product.discounted_price) : '',
-		  }
-		: {
-				name: '',
-				price: '',
-				category_id: '',
-				unit: '',
-				status: 'active',
-				image: null,
-				is_seasonal_deal: false,
-				is_flash_deal: false,
-				discounted_price: '',
-		  };
+		const defaultValues = product
+				? {
+								name: product.name || '',
+								price: product.price ? String(product.price) : '',
+								category_id: product.category_id ? String(product.category_id) : '',
+								unit: product.unit || '',
+								amount_per_unit: product.amount_per_unit ? String(product.amount_per_unit) : '1',
+								status: product.status || 'active',
+								image: null,
+								is_seasonal_deal: !!product.is_seasonal_deal,
+								is_flash_deal: !!product.is_flash_deal,
+								discounted_price: product.discounted_price ? String(product.discounted_price) : '',
+					}
+				: {
+								name: '',
+								price: '',
+								category_id: '',
+								unit: '',
+								amount_per_unit: '1',
+								status: 'active',
+								image: null,
+								is_seasonal_deal: false,
+								is_flash_deal: false,
+								discounted_price: '',
+					};
 
 	const {
 		register,
@@ -137,6 +143,7 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 			formData.append('price', parseFloat(data.price));
 			formData.append('category_id', parseInt(data.category_id));
 			formData.append('unit', data.unit);
+			formData.append('amount_per_unit', parseFloat(data.amount_per_unit));
 			formData.append('status', data.status);
 			formData.append('is_seasonal_deal', data.is_seasonal_deal ? 1 : 0);
 			formData.append('is_flash_deal', data.is_flash_deal ? 1 : 0);
@@ -188,13 +195,13 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 					{product && product.image_url ? (
 						<div className="w-full h-64 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden rounded-t-lg mb-2">
 							<img
-								src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
+								src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL}${product.image_url}`}
 								alt={product.name}
 								className="w-full h-full object-cover"
 							/>
 						</div>
 					) : null}
-					<h2 className="text-lg font-semibold">{product ? 'Edit Product' : 'Add New Product'}</h2>
+					<h2 className="text-lg font-semibold">{product ? 'Edit Product' : t('addNewProduct')}</h2>
 				</DialogHeader>
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -258,6 +265,21 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
 								</SelectContent>
 							</Select>
 							{formErrors.unit && <p className="text-xs text-red-500 mt-1">{formErrors.unit?.message}</p>}
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="amount_per_unit" className="mb-1">
+								Amount per unit *
+							</Label>
+							<Input
+								id="amount_per_unit"
+								type="number"
+								step="0.01"
+								min="0.01"
+								{...register('amount_per_unit')}
+								placeholder="e.g. 1, 100, 6"
+								autoComplete="off"
+							/>
+							{formErrors.amount_per_unit && <p className="text-xs text-red-500 mt-1">{formErrors.amount_per_unit?.message}</p>}
 						</div>
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="price" className="mb-1">

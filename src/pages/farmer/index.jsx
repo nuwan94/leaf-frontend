@@ -9,8 +9,10 @@ import { useCurrency } from '@/lib/currency';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { farmerService } from '@/lib/services';
+import { useTranslation } from 'react-i18next';
 
 export default function FarmerHome() {
+  const { t } = useTranslation();
   const { formatPrice } = useCurrency();
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
@@ -39,10 +41,10 @@ export default function FarmerHome() {
   }, [user]);
 
   const statCards = stats ? [
-    { title: 'Total Products', value: stats.total_products, icon: Package, change: '' },
-    { title: 'Active Products', value: stats.active_products, icon: TrendingUp, change: '' },
-    { title: 'Featured Products', value: stats.featured_products, icon: Calendar, change: '' },
-    { title: 'Total Inventory', value: stats.total_inventory, icon: ShoppingBag, change: '' },
+    { title: t('totalProducts'), value: stats.total_products, icon: Package, change: '' },
+    { title: t('activeProducts'), value: stats.active_products, icon: TrendingUp, change: '' },
+    { title: t('featuredProducts'), value: stats.featured_products, icon: Calendar, change: '' },
+    { title: t('totalInventory'), value: stats.total_inventory, icon: ShoppingBag, change: '' },
   ] : [];
 
   return (
@@ -89,7 +91,7 @@ export default function FarmerHome() {
               tabIndex={0}
             >
               <PlusCircle className="h-8 w-8 text-primary mb-2" />
-              <span className="font-semibold">Add New Product</span>
+              <span className="font-semibold">{t('addNewProduct')}</span>
             </Card>
             <Card
               className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-primary/10 transition"
