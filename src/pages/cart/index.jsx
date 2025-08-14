@@ -34,7 +34,9 @@ export default function CartPage() {
   const handleCheckout = () => {
     // TODO: Implement checkout functionality
     console.log('Proceeding to checkout with cart:', cart);
-    // navigate('/checkout');
+    if (cart && cart.items.length > 0) {
+      navigate('/cart/checkout');
+    }
   };
 
   if (!cart || cart.items.length === 0) {
@@ -88,6 +90,20 @@ export default function CartPage() {
 
   return (
     <TopNavLayout>
+      {/* Step Indicator */}
+      <div className="w-full flex justify-center py-4">
+        <ol className="flex items-center w-full max-w-md mx-auto text-sm font-medium text-gray-500 dark:text-gray-400">
+          <li className="flex-1 flex items-center gap-2">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white">1</span>
+            <span className="ml-2">Cart</span>
+            <span className="flex-1 h-0.5 bg-blue-600 mx-2" />
+          </li>
+          <li className="flex-1 flex items-center gap-2">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400">2</span>
+            <span className="ml-2">Checkout</span>
+          </li>
+        </ol>
+      </div>
       <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           {/* Header */}
@@ -209,8 +225,9 @@ export default function CartPage() {
                         onClick={handleCheckout} 
                         className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" 
                         size="lg"
+                        disabled={!cart.items.length}
                       >
-                        {t('proceedToCheckout')}
+                        {t('placeOrder') || 'Place Order'}
                       </Button>
 
                       <Button

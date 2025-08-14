@@ -69,12 +69,24 @@ export function CartItem({ item, className, ...props }) {
 
       {/* Product Details */}
       <div className="flex-1 min-w-0 space-y-3">
-        {/* Header with name and remove button */}
+        {/* Header with name, unit, and farmer name */}
         <div className="flex justify-between items-start gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
               {item.name || item.product?.name}
             </h4>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {(item.amount_per_unit || item.unit) && (
+                <span className="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                  {item.amount_per_unit ? `${item.amount_per_unit} ` : ''}{item.unit}
+                </span>
+              )}
+              {item.farmer_name && (
+                <span className="text-xs px-2 py-0.5 rounded bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                  {item.farmer_name}
+                </span>
+              )}
+            </div>
             {item.description && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                 {item.description}

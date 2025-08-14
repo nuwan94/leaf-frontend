@@ -5,10 +5,12 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { DynamicHome } from '@/components/DynamicHome';
 import AdminHome from '@/pages/admin';
 import CustomerHome from '@/pages/customer';
+import OrderHistory from '@/pages/customer/order-history.jsx';
 import FarmerHome from '@/pages/farmer';
 import FarmDetails from '@/pages/farmer/farm-details';
 import DeliveryAgentHome from '@/pages/delivery-agent';
 import CartPage from '@/pages/cart';
+import Checkout from '@/pages/cart/checkout.jsx';
 import SearchPage from '@/pages/search';
 import Profile from '@/pages/profile';
 import { TokenStatus } from '@/components/TokenStatus.jsx';
@@ -43,7 +45,9 @@ const App = () => {
 
               {/* Other protected routes */}
               <Route path="/cart" element={<CartPage />} />
+              <Route path="/cart/checkout" element={<Checkout />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/customer/orders" element={<OrderHistory />} />
               <Route path="/admin/localization" element={<AdminLocalization />} />
             </Route>
 

@@ -65,8 +65,11 @@ export function ProductCard({ product, className, ...props }) {
         price: product.price,
         name: product.name,
         unit: product.unit,
+        amount_per_unit: product.amount_per_unit,
         image_url: product.image_url,
         brand: product.brand,
+        farmer_id: product.farmer_id,
+        farmer_name: product.farmer_name || ((product.farmer_first_name && product.farmer_last_name) ? `${product.farmer_first_name} ${product.farmer_last_name}` : undefined),
       });
     } catch (error) {
       console.error('Failed to add to cart:', error);

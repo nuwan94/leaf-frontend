@@ -210,6 +210,7 @@ export default function TopNavLayout({ children, className }) {
               {/* User Menu */}
               {user ? (
                 <div className="flex items-center gap-2">
+
                   <Button
                     variant="ghost"
                     size="sm"
@@ -218,6 +219,16 @@ export default function TopNavLayout({ children, className }) {
                   >
                     <User className="h-4 w-4" />
                     {user.first_name || 'Profile'}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/customer/orders')}
+                    className="hidden sm:flex items-center gap-2"
+                  >
+                    <span className="h-4 w-4 inline-block">📦</span>
+                    {t('orderHistory') || 'Order History'}
                   </Button>
 
                   <AlertDialog>
@@ -284,6 +295,7 @@ export default function TopNavLayout({ children, className }) {
 
               {user && (
                 <>
+
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -294,6 +306,18 @@ export default function TopNavLayout({ children, className }) {
                   >
                     <User className="h-4 w-4 mr-2" />
                     Profile
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      navigate('/customer/orders');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full justify-start"
+                  >
+                    <span className="h-4 w-4 mr-2 inline-block">📦</span>
+                    {t('orderHistory') || 'Order History'}
                   </Button>
 
                   <Button

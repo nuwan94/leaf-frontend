@@ -1,3 +1,4 @@
+export { default as orderService } from './orderService';
 // Centralized API services export
 export { default as authService } from './authService';
 export { default as userService } from './userService';

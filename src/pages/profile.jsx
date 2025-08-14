@@ -26,7 +26,7 @@ const profileSchema = z.object({
   last_name: z.string().min(1, 'lastNameRequired'),
   phone: z.string().regex(/^[\+]?[0-9\-\(\)\s]+$/, 'invalidPhoneFormat').optional().or(z.literal('')),
   address: z.string().optional(),
-  district: z.string().min(1, 'districtRequired'),
+  district: z.number().min(1, 'districtRequired'),
 });
 
 const passwordSchema = z.object({
@@ -90,7 +90,7 @@ export default function Profile() {
             last_name: response.data.last_name || '',
             phone: response.data.phone || '',
             address: response.data.address || '',
-            district: response.data.district_id || '',
+            district: response.data.district_id ? Number(response.data.district_id) : '',
           });
         }
       } catch (error) {
@@ -330,7 +330,7 @@ export default function Profile() {
                             value={profileForm.watch('district')}
                             labelKey="label"
                             valueKey="value"
-                            onChange={val => profileForm.setValue('district', val, { shouldValidate: true })}
+                            onChange={val => profileForm.setValue('district', Number(val), { shouldValidate: true })}
                             buttonClassName={cn('w-full', 'h-9 text-sm', profileForm.formState.errors.district && 'border-destructive focus-visible:ring-destructive')}
                             contentClassName="w-48"
                             disabled={districtOptions.length === 0}

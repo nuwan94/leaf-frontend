@@ -120,8 +120,11 @@ export function CartProvider({ children }) {
           price: productData?.price || '0',
           name: productData?.name || 'Unknown Product',
           unit: productData?.unit || 'unit',
+          amount_per_unit: productData?.amount_per_unit || '',
           image_url: productData?.image_url || null,
-          brand: productData?.brand || null
+          brand: productData?.brand || null,
+          farmer_id: productData?.farmer_id || null,
+          farmer_name: productData?.farmer_name || null
         };
         currentItems.push(newItem);
         console.log('Added new item:', newItem);
