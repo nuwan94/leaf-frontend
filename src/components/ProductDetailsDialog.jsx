@@ -1,17 +1,23 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/hooks/useAuth';
+import InlineReview from '@/components/InlineReview.jsx';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '@/lib/currency';
 import Rating from '@/components/ui/rating';
 import ProductReviewCard from '@/components/ProductReviewCard';
+import { reviewService } from '@/lib/services/reviewService';
 
 export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProductDetails }) {
+  const { user } = useAuth();
   const { t } = useTranslation();
   const { formatPrice } = useCurrency();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     if (!open || !productId) return;
@@ -21,6 +27,19 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
       .then(setProduct)
       .catch(err => setError(err.message || t('error')))
       .finally(() => setLoading(false));
+    setReviewsLoading(true);
+    reviewService.getProductReviews(productId)
+      .then(res => {
+        if (res.success && Array.isArray(res.data)) {
+          setReviews(res.data);
+        } else if (Array.isArray(res)) {
+          setReviews(res);
+        } else {
+          setReviews([]);
+        }
+      })
+      .catch(() => setReviews([]))
+      .finally(() => setReviewsLoading(false));
   }, [open, productId, fetchProductDetails, t]);
 
   // Helpers for fallback image and error handling
@@ -29,27 +48,7 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
     e.target.onerror = null;
     e.target.src = fallbackImage;
   };
-  // Mock reviews for demonstration
-  const mockReviews = [
-    {
-      user: { name: 'Kasun De Alwis', avatar_url: '/default-avatar.png' },
-      timeAgo: '2 days ago',
-      rating: 4.5,
-      text: 'Very fresh and tasty! Delivery was quick and packaging was great. Will order again.'
-    },
-    {
-      user: { name: 'Piyumi Silva', avatar_url: '/default-avatar.png' },
-      timeAgo: '1 week ago',
-      rating: 5,
-      text: 'Absolutely loved the quality. The vegetables were crisp and the price was reasonable.'
-    },
-    {
-      user: { name: 'Kavindu Madusanka', avatar_url: '/default-avatar.png' },
-      timeAgo: '3 weeks ago',
-      rating: 4,
-      text: 'Good value for money. Some items were a bit small but overall satisfied.'
-    }
-  ];
+  // No more mock reviews; use actual reviews from backend
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -87,11 +86,66 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
             </div>
             <div className="w-full border-t border-gray-200 mt-4 pt-4 px-6 pb-6">
               <h3 className="text-lg font-semibold mb-2">{t('product.reviews')}</h3>
-              <div className="flex flex-col gap-3 w-full">
-                {mockReviews.map((review, idx) => (
-                  <ProductReviewCard key={idx} review={review} />
-                ))}
-              </div>
+              {/* Show InlineReview only for the logged-in user's review, others are not editable */}
+              {user && user.role === 'customer' && (() => {
+                const myReview = reviews.find(r => r.user_id === user.id);
+                return (
+                  <>
+                    <div className="flex flex-col gap-3 w-full">
+                      {reviews.map((review, idx) =>
+                        review.user_id === user.id ? (
+                          <InlineReview
+                            key={review.id || idx}
+                            productId={productId}
+                            userId={user.id}
+                            orderItemId={review.order_item_id}
+                            existingReview={review}
+                            disabled={reviewsLoading}
+                            onReviewSubmitted={() => {
+                              reviewService.getProductReviews(productId).then(res => {
+                                if (res.success && Array.isArray(res.data)) setReviews(res.data);
+                                else if (Array.isArray(res)) setReviews(res);
+                              });
+                            }}
+                          />
+                        ) : (
+                          <ProductReviewCard key={review.id || idx} review={review} />
+                        )
+                      )}
+                      {/* If user hasn't reviewed yet, show empty InlineReview */}
+                      {!myReview && (
+                        <InlineReview
+                          productId={productId}
+                          userId={user.id}
+                          orderItemId={undefined}
+                          existingReview={null}
+                          disabled={reviewsLoading}
+                          onReviewSubmitted={() => {
+                            reviewService.getProductReviews(productId).then(res => {
+                              if (res.success && Array.isArray(res.data)) setReviews(res.data);
+                              else if (Array.isArray(res)) setReviews(res);
+                            });
+                          }}
+                        />
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+              {/* If not logged in or not a customer, show all reviews as read-only */}
+              {(!user || user.role !== 'customer') && (
+                <div className="flex flex-col gap-3 w-full mt-4">
+                  {reviewsLoading ? (
+                    <div className="text-sm text-gray-500">{t('loading')}</div>
+                  ) : reviews.length === 0 ? (
+                    <div className="text-sm text-gray-500">{t('product.noReviews') || 'No reviews yet.'}</div>
+                  ) : (
+                    reviews.map((review, idx) => (
+                      <ProductReviewCard key={review.id || idx} review={review} />
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ) : (

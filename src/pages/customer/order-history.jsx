@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import TopNavLayout from '@/components/layouts/TopNavLayout';
 import { cn } from '@/lib/utils';
 
+import InlineReview from '@/components/InlineReview.jsx';
+import { reviewService } from '@/lib/services/reviewService';
 
 export default function OrderHistory() {
   const { t } = useTranslation();
@@ -16,23 +18,37 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
+  const [userReviews, setUserReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
-    async function fetchOrders() {
+    async function fetchOrdersAndReviews() {
       if (!user?.id) return;
       setLoading(true);
+      setReviewsLoading(true);
       try {
-        const res = await orderService.listOrders(user.id);
-        if (res.data && res.data.success) {
-          setOrders(res.data.data);
+        const [ordersRes, reviewsRes] = await Promise.all([
+          orderService.listOrders(user.id),
+          reviewService.getUserReviews(user.id)
+        ]);
+        if (ordersRes.data && ordersRes.data.success) {
+          setOrders(ordersRes.data.data);
+        }
+        if (reviewsRes && Array.isArray(reviewsRes.data)) {
+          setUserReviews(reviewsRes.data);
+        } else if (reviewsRes && reviewsRes.success && Array.isArray(reviewsRes.data)) {
+          setUserReviews(reviewsRes.data);
+        } else {
+          setUserReviews([]);
         }
       } catch {
-        // Optionally handle error
+        setUserReviews([]);
       } finally {
         setLoading(false);
+        setReviewsLoading(false);
       }
     }
-    fetchOrders();
+    fetchOrdersAndReviews();
   }, [user]);
 
   const statusColor = (status) => {
@@ -99,14 +115,40 @@ export default function OrderHistory() {
                     <div className="divide-y divide-gray-200 mt-2">
                       <div className="font-semibold text-gray-700 mb-2">{t('items') || 'Items'}</div>
                       {order.items.map(item => (
-                        <div key={item.id} className="py-2 flex items-center gap-3">
-                          <div className="flex-1">
-                            <div className="font-medium">{item.product_name}</div>
-                            <div className="text-xs text-gray-500">
-                              {item.quantity} x Rs. {item.unit_price} / {item.amount_per_unit} {item.unit}
+                        <div key={item.id} className="py-2 flex flex-col gap-1 border-b last:border-b-0">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1">
+                              <div className="font-medium">{item.product_name}</div>
+                              <div className="text-xs text-gray-500">
+                                {item.quantity} x Rs. {item.unit_price} / {item.amount_per_unit} {item.unit}
+                              </div>
                             </div>
+                            <div className="font-bold">Rs. {item.total_price}</div>
                           </div>
-                          <div className="font-bold">Rs. {item.total_price}</div>
+                          {/* Inline review form for each product */}
+                          {(() => {
+                            // Find if user has already reviewed this product/order item
+                            const existingReview = userReviews.find(r =>
+                              r.product_id === (item.product_id || item.id) &&
+                              r.order_item_id === item.id
+                            );
+                            return (
+                              <InlineReview
+                                productId={item.product_id || item.id}
+                                userId={user.id}
+                                orderItemId={item.id}
+                                existingReview={existingReview}
+                                disabled={reviewsLoading}
+                                onReviewSubmitted={() => {
+                                  // Refresh reviews after submit
+                                  reviewService.getUserReviews(user.id).then(res => {
+                                    if (res && Array.isArray(res.data)) setUserReviews(res.data);
+                                    else if (res && res.success && Array.isArray(res.data)) setUserReviews(res.data);
+                                  });
+                                }}
+                              />
+                            );
+                          })()}
                         </div>
                       ))}
                     </div>

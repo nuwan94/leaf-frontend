@@ -1,4 +1,9 @@
-import { useState } from 'react';
+// Category images from customer index.jsx
+import vegetablesImg from '@/assets/vegetables.png';
+import fruitsImg from '@/assets/fruits.png';
+import grainsImg from '@/assets/grains.png';
+import dairyImg from '@/assets/dairy.png';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +12,143 @@ import { LangSelector } from '@/components/lang-selector';
 import { DarkModeSwitcher } from '@/components/dark-mode-switcher';
 import { CartIcon } from '@/components/cart/CartIcon';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { productService } from '@/lib/services';
+import productService from '@/lib/services/productService';
 import { useTranslation } from 'react-i18next';
 import Logo from '@/assets/logo.png';
-import { Home, Menu, Search, LogOut, User, ArrowRight } from 'lucide-react';
+import { Menu, Search, LogOut, User, ArrowRight, ChevronRight, Home } from 'lucide-react';
+// CategoryPopoverMenu: fetches categories and renders popover with submenus if needed
+function CategoryPopoverMenu({ navigate, t }) {
+  // Map category names (lowercase) to imported images
+  const categoryImageMap = {
+    vegetables: vegetablesImg,
+    fruits: fruitsImg,
+    grains: grainsImg,
+    dairy: dairyImg,
+  };
+  const [categories, setCategories] = useState([]);
+  useEffect(() => {
+    productService.getCategories().then(setCategories).catch(() => setCategories([]));
+  }, []);
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" className="flex items-center gap-2">
+          {t('categories') || 'Categories'}
+        </Button>
+      </PopoverTrigger>
+  <PopoverContent side="bottom" align="start" className="p-0 min-w-[900px] max-w-[1200px] rounded-t-none shadow-2xl border-t-0 mt-2">
+        <div
+          className="flex flex-row gap-4 pt-0 pb-3 px-3 divide-x divide-border"
+        >
+          {categories.map((cat, idx) => {
+            // Try to match category name to image
+            const key = cat.category_name?.toLowerCase();
+            const customImg = categoryImageMap[key];
+            return (
+              <div key={cat.category_id} className={cn("flex-1 w-full px-3 py-2", idx === 0 ? "pl-0" : "")}> 
+                <div
+                  className="font-semibold text-base mb-2 cursor-pointer hover:text-primary transition-colors flex items-center gap-2"
+                  onClick={() => navigate(`/search?category=${cat.category_id}`)}
+                  tabIndex={0}
+                  role="button"
+                >
+                  <span className="flex items-center gap-2 flex-1 min-w-0">
+                    {customImg ? (
+                      <img
+                        src={customImg}
+                        alt={cat.category_name}
+                        className="w-14 h-14 object-contain rounded bg-muted border flex-shrink-0"
+                      />
+                    ) : cat.image_url ? (
+                      <img
+                        src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${cat.image_url}`}
+                        alt={cat.category_name}
+                        className="w-14 h-14 object-cover rounded bg-muted border flex-shrink-0"
+                      />
+                    ) : (
+                      <span className="w-14 h-14 rounded bg-muted border flex items-center justify-center text-muted-foreground text-xl flex-shrink-0">🏷️</span>
+                    )}
+                    <span className="truncate">{cat.category_name}</span>
+                  </span>
+                  <span className="flex items-center justify-center ml-2 flex-shrink-0">
+                    <ChevronRight className="h-5 w-5" />
+                  </span>
+                </div>
+                {Array.isArray(cat.children) && cat.children.length > 0 && (
+                  <ul className="space-y-1">
+                    {cat.children.map(sub => (
+                      <li key={sub.category_id}>
+                        <button
+                          className="text-left w-full px-0 py-1 text-sm hover:text-primary hover:underline focus:outline-none flex items-center justify-between gap-2"
+                          onClick={() => navigate(`/search?category=${sub.category_id}`)}
+                        >
+                          <span>{sub.category_name}</span>
+                          <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 import { cn } from '@/lib/utils';
 import { debounce } from 'lodash';
-import { useCallback, useEffect } from 'react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 
+
+// Multilevel Popover Submenu helpers
+function PopoverSubMenu({ label, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="relative group"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        className="w-full flex items-center justify-between px-4 py-2 hover:bg-accent/30 text-left text-base font-medium"
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        tabIndex={0}
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <span>{label}</span>
+        <ChevronRight className="h-4 w-4 ml-2" />
+      </button>
+      {/* Submenu: remove pointer-events-none from wrapper, only pointer-events-auto on panel */}
+      <div className={open ? "absolute inset-y-0 left-full flex" : "hidden"} style={{ minWidth: 0 }}>
+        <div
+          className="pointer-events-auto min-w-[180px] bg-background border border-border rounded-md shadow-lg z-50"
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
+        >
+          <div className="flex flex-col py-2">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PopoverSubMenuItem({ children, onClick }) {
+  return (
+    <button
+      className="w-full text-left px-4 py-2 hover:bg-accent/40 text-base"
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
 export default function TopNavLayout({ children, className }) {
 	const navigate = useNavigate();
 	const { user, logout } = useAuth();
@@ -113,7 +247,7 @@ export default function TopNavLayout({ children, className }) {
       <nav className="sticky top-0 z-50 border-b bg-background shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
-            {/* Logo and Home */}
+            {/* Logo and Category Menu */}
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -124,16 +258,10 @@ export default function TopNavLayout({ children, className }) {
                 <span className="font-bold text-xl hidden sm:inline">LEAF</span>
               </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-                className="hidden md:flex items-center gap-2"
-              >
-                <Home className="h-4 w-4" />
-                {t('home')}
-              </Button>
+              {/* Category Popover Menu (dynamic) */}
+              <CategoryPopoverMenu navigate={navigate} t={t} />
             </div>
+
 
             {/* Global Search with Dropdown */}
             <div className="flex-1 max-w-md mx-4 relative search-container">
@@ -299,12 +427,12 @@ export default function TopNavLayout({ children, className }) {
                   <Button
                     variant="ghost"
                     onClick={() => {
-                      navigate('/profile');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full justify-start"
-                  >
-                    <User className="h-4 w-4 mr-2" />
+                  navigate('/profile');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full justify-start"
+              >
+                <User className="h-4 w-4 mr-2" />
                     Profile
                   </Button>
 
