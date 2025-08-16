@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import InlineReview from '@/components/InlineReview.jsx';
+import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useCurrency } from '@/lib/currency';
 import Rating from '@/components/ui/rating';
@@ -48,7 +49,8 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
     e.target.onerror = null;
     e.target.src = fallbackImage;
   };
-  // No more mock reviews; use actual reviews from backend
+  // Edit state for user's review
+  const [editReviewId, setEditReviewId] = useState(null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,66 +88,54 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
             </div>
             <div className="w-full border-t border-gray-200 mt-4 pt-4 px-6 pb-6">
               <h3 className="text-lg font-semibold mb-2">{t('product.reviews')}</h3>
-              {/* Show InlineReview only for the logged-in user's review, others are not editable */}
-              {user && user.role === 'customer' && (() => {
-                const myReview = reviews.find(r => r.user_id === user.id);
-                return (
-                  <>
-                    <div className="flex flex-col gap-3 w-full">
-                      {reviews.map((review, idx) =>
-                        review.user_id === user.id ? (
-                          <InlineReview
-                            key={review.id || idx}
-                            productId={productId}
-                            userId={user.id}
-                            orderItemId={review.order_item_id}
-                            existingReview={review}
-                            disabled={reviewsLoading}
-                            onReviewSubmitted={() => {
-                              reviewService.getProductReviews(productId).then(res => {
-                                if (res.success && Array.isArray(res.data)) setReviews(res.data);
-                                else if (Array.isArray(res)) setReviews(res);
-                              });
-                            }}
-                          />
-                        ) : (
-                          <ProductReviewCard key={review.id || idx} review={review} />
-                        )
-                      )}
-                      {/* If user hasn't reviewed yet, show empty InlineReview */}
-                      {!myReview && (
+              {/* All reviews for this product, read-only, but show edit icon for logged-in user's review */}
+              <div className="flex flex-col gap-3 w-full mt-4">
+                {reviewsLoading ? (
+                  <div className="text-sm text-gray-500">{t('loading')}</div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-sm text-gray-500">{t('product.noReviews') || 'No reviews yet.'}</div>
+                ) : (
+                  reviews.map((review, idx) => {
+                    const isMyReview = user && review.user_id === user.id;
+                    if (isMyReview && editReviewId === review.id) {
+                      // Edit mode for user's review
+                      return (
                         <InlineReview
+                          key={review.id || idx}
                           productId={productId}
                           userId={user.id}
-                          orderItemId={undefined}
-                          existingReview={null}
+                          orderItemId={review.order_item_id}
+                          existingReview={review}
                           disabled={reviewsLoading}
                           onReviewSubmitted={() => {
+                            setEditReviewId(null);
                             reviewService.getProductReviews(productId).then(res => {
                               if (res.success && Array.isArray(res.data)) setReviews(res.data);
                               else if (Array.isArray(res)) setReviews(res);
                             });
                           }}
+                          onCancel={() => setEditReviewId(null)}
                         />
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
-              {/* If not logged in or not a customer, show all reviews as read-only */}
-              {(!user || user.role !== 'customer') && (
-                <div className="flex flex-col gap-3 w-full mt-4">
-                  {reviewsLoading ? (
-                    <div className="text-sm text-gray-500">{t('loading')}</div>
-                  ) : reviews.length === 0 ? (
-                    <div className="text-sm text-gray-500">{t('product.noReviews') || 'No reviews yet.'}</div>
-                  ) : (
-                    reviews.map((review, idx) => (
-                      <ProductReviewCard key={review.id || idx} review={review} />
-                    ))
-                  )}
-                </div>
-              )}
+                      );
+                    }
+                    return (
+                      <div key={review.id || idx} className="relative group">
+                        <ProductReviewCard review={review} />
+                        {isMyReview && (
+                          <button
+                            type="button"
+                            className="absolute top-2 right-2 opacity-70 hover:opacity-100 transition-opacity"
+                            title={t('edit')}
+                            onClick={() => setEditReviewId(review.id)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         ) : (

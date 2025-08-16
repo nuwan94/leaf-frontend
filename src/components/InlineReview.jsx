@@ -47,7 +47,14 @@ export default function InlineReview({ productId, userId, orderItemId, existingR
       }
       if (onReviewSubmitted) onReviewSubmitted();
     } catch (err) {
-      toast.error(err.message || 'Failed to submit review');
+      // Try to show backend error message if available
+      let msg = 'Failed to submit review';
+      if (err?.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err?.message) {
+        msg = err.message;
+      }
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

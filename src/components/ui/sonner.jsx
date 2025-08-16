@@ -9,6 +9,7 @@ const Toaster = ({
   return (
     (<Sonner
       theme={theme}
+      expand
       className="toaster group"
       style={
         {

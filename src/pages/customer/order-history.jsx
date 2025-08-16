@@ -18,7 +18,8 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
-  const [userReviews, setUserReviews] = useState([]);
+  // Store reviews per order: { [orderId]: [reviews] }
+  const [orderReviews, setOrderReviews] = useState({});
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
@@ -27,22 +28,32 @@ export default function OrderHistory() {
       setLoading(true);
       setReviewsLoading(true);
       try {
-        const [ordersRes, reviewsRes] = await Promise.all([
-          orderService.listOrders(user.id),
-          reviewService.getUserReviews(user.id)
-        ]);
+        const ordersRes = await orderService.listOrders(user.id);
         if (ordersRes.data && ordersRes.data.success) {
           setOrders(ordersRes.data.data);
-        }
-        if (reviewsRes && Array.isArray(reviewsRes.data)) {
-          setUserReviews(reviewsRes.data);
-        } else if (reviewsRes && reviewsRes.success && Array.isArray(reviewsRes.data)) {
-          setUserReviews(reviewsRes.data);
+          // Fetch reviews for each order
+          const reviewsMap = {};
+          await Promise.all(
+            ordersRes.data.data.map(async (order) => {
+              try {
+                const res = await reviewService.getOrderReviews(order.id);
+                if (res && Array.isArray(res.data)) {
+                  reviewsMap[order.id] = res.data;
+                } else if (res && res.success && Array.isArray(res.data)) {
+                  reviewsMap[order.id] = res.data;
+                } else {
+                  reviewsMap[order.id] = [];
+                }
+              } catch {
+                reviewsMap[order.id] = [];
+              }
+            })
+          );
+          setOrderReviews(reviewsMap);
         } else {
-          setUserReviews([]);
+          setOrders([]);
+          setOrderReviews({});
         }
-      } catch {
-        setUserReviews([]);
       } finally {
         setLoading(false);
         setReviewsLoading(false);
@@ -127,8 +138,9 @@ export default function OrderHistory() {
                           </div>
                           {/* Inline review form for each product */}
                           {(() => {
-                            // Find if user has already reviewed this product/order item
-                            const existingReview = userReviews.find(r =>
+                            // Find if user has already reviewed this product/order item in this order
+                            const reviewsForOrder = orderReviews[order.id] || [];
+                            const existingReview = reviewsForOrder.find(r =>
                               r.product_id === (item.product_id || item.id) &&
                               r.order_item_id === item.id
                             );
@@ -139,12 +151,14 @@ export default function OrderHistory() {
                                 orderItemId={item.id}
                                 existingReview={existingReview}
                                 disabled={reviewsLoading}
-                                onReviewSubmitted={() => {
-                                  // Refresh reviews after submit
-                                  reviewService.getUserReviews(user.id).then(res => {
-                                    if (res && Array.isArray(res.data)) setUserReviews(res.data);
-                                    else if (res && res.success && Array.isArray(res.data)) setUserReviews(res.data);
-                                  });
+                                onReviewSubmitted={async () => {
+                                  // Refresh reviews for this order after submit
+                                  try {
+                                    const res = await reviewService.getOrderReviews(order.id);
+                                    setOrderReviews(prev => ({ ...prev, [order.id]: (res && Array.isArray(res.data)) ? res.data : [] }));
+                                  } catch {
+                                    setOrderReviews(prev => ({ ...prev, [order.id]: [] }));
+                                  }
                                 }}
                               />
                             );

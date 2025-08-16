@@ -21,6 +21,12 @@ export const reviewService = {
     const response = await api.get(`/users/${userId}/reviews`);
     return response.data;
   },
+
+  // Get reviews for an order
+  getOrderReviews: async (orderId) => {
+    const response = await api.get(`/orders/${orderId}/reviews`);
+    return response.data;
+  },
 };
 
 export default reviewService;
