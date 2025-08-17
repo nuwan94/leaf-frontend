@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
   const [error, setError] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [ratingSummary, setRatingSummary] = useState({ average_rating: 0, review_count: 0 });
 
   useEffect(() => {
     if (!open || !productId) return;
@@ -41,6 +43,12 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
       })
       .catch(() => setReviews([]))
       .finally(() => setReviewsLoading(false));
+    // Fetch rating summary
+    reviewService.getProductRatingSummary(productId)
+      .then((summary) => {
+        setRatingSummary(summary && typeof summary === 'object' ? summary : { average_rating: 0, review_count: 0 });
+      })
+      .catch(() => setRatingSummary({ average_rating: 0, review_count: 0 }));
   }, [open, productId, fetchProductDetails, t]);
 
   // Helpers for fallback image and error handling
@@ -52,6 +60,21 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
   // Edit state for user's review
   const [editReviewId, setEditReviewId] = useState(null);
 
+  // Discount logic: only show discounted price if there is a real discount, as in ProductCard
+  let hasDiscount = false;
+  let priceNum = 0;
+  let discountedNum = 0;
+  if (product) {
+    priceNum = Number(product.price);
+    discountedNum = Number(product.discounted_price);
+    hasDiscount =
+      (product.is_seasonal_deal || product.is_flash_deal) &&
+      product.discounted_price != null &&
+      !isNaN(discountedNum) &&
+      !isNaN(priceNum) &&
+      priceNum > 0 &&
+      discountedNum < priceNum;
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-full p-0">
@@ -72,17 +95,31 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
                   <DialogDescription>{product.description}</DialogDescription>
                 </DialogHeader>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-lg font-semibold text-green-600">{formatPrice(product.discounted_price)}</span>
-                  {product.price !== product.discounted_price && (
-                    <span className="text-sm line-through text-gray-400">{formatPrice(product.price)}</span>
+                  {hasDiscount ? (
+                    <>
+                      <span className="text-sm line-through text-gray-400 mr-1">
+                        {formatPrice(product.price)}
+                      </span>
+                      <span className="text-lg font-semibold text-green-600">
+                        {formatPrice(product.discounted_price)} / 1 {product.unit || t('product.unit')}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-lg font-semibold text-green-600">
+                      {formatPrice(product.price)} / 1 {product.unit || t('product.unit')}
+                    </span>
                   )}
                 </div>
+                <div className="text-xs text-gray-500">
+                  {formatPrice(product.discounted_price)} per 1 {product.unit || t('product.unit')}
+                </div>
                 <div className="text-sm text-gray-500">
-                  {t('product.available')}: {product.quantity} {t('product.unit')}
+                  {t('product.available')}: {product.quantity_available} {product.unit || t('product.unit')}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <Rating value={product.rating} readOnly />
-                  <span className="text-xs text-gray-500">({product.review_count} {t('product.reviews')})</span>
+                  <Rating value={Number(ratingSummary.average_rating) || 0} readOnly />
+                  <span className="text-xs text-gray-500">{typeof ratingSummary.average_rating === 'number' ? ratingSummary.average_rating.toFixed(2) : '0.00'} / 5</span>
+                  <span className="text-xs text-gray-500">({ratingSummary.review_count} {t('product.reviews')})</span>
                 </div>
               </div>
             </div>

@@ -1,6 +1,11 @@
-import api from '@/lib/api';
+  import api from '@/lib/api';
 
-export const reviewService = {
+  export const reviewService = {
+    // Get overall rating summary for a product
+    getProductRatingSummary: async (productId) => {
+      const response = await api.get(`/products/${productId}/rating-summary`);
+      return response.data;
+    },
   // Update a review by id
   updateReview: async (reviewId, review) => {
     const response = await api.put(`/reviews/${reviewId}`, review);
@@ -28,5 +33,3 @@ export const reviewService = {
     return response.data;
   },
 };
-
-export default reviewService;
