@@ -45,7 +45,7 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
       .finally(() => setReviewsLoading(false));
     // Fetch rating summary
     reviewService.getProductRatingSummary(productId)
-      .then((summary) => {
+      .then(({ data: summary }) => {
         setRatingSummary(summary && typeof summary === 'object' ? summary : { average_rating: 0, review_count: 0 });
       })
       .catch(() => setRatingSummary({ average_rating: 0, review_count: 0 }));
@@ -110,14 +110,12 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-gray-500">
-                  {formatPrice(product.discounted_price)} per 1 {product.unit || t('product.unit')}
-                </div>
                 <div className="text-sm text-gray-500">
                   {t('product.available')}: {product.quantity_available} {product.unit || t('product.unit')}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <Rating value={Number(ratingSummary.average_rating) || 0} readOnly />
+                  {/* {JSON.stringify(ratingSummary)} */}
+                  <Rating value={ratingSummary.average_rating} />
                   <span className="text-xs text-gray-500">{typeof ratingSummary.average_rating === 'number' ? ratingSummary.average_rating.toFixed(2) : '0.00'} / 5</span>
                   <span className="text-xs text-gray-500">({ratingSummary.review_count} {t('product.reviews')})</span>
                 </div>
