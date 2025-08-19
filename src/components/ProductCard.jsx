@@ -34,6 +34,9 @@ export function ProductCard({ product, className, ...props }) {
     priceNum > 0 &&
     discountedNum < priceNum;
 
+  // Prefer localized_name from backend, fallback to name
+  const displayName = product.localized_name || product.name;
+
   function DiscountBadge() {
     if (!hasDiscount) return null;
     const percent = Math.round((100 * (priceNum - discountedNum)) / priceNum);
@@ -146,7 +149,7 @@ export function ProductCard({ product, className, ...props }) {
           {product.image_url ? (
             <img
               src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`}
-              alt={product.localized_name || product.name}
+              alt={displayName}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
               onClick={e => {
                 e.stopPropagation();
@@ -174,7 +177,7 @@ export function ProductCard({ product, className, ...props }) {
             <div className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-base text-gray-900 dark:text-gray-100 truncate">
-                  {product.localized_name || product.name}
+                  {displayName}
                 </h3>
               </div>
               {product.category && (

@@ -64,6 +64,9 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
   let hasDiscount = false;
   let priceNum = 0;
   let discountedNum = 0;
+  // Prefer localized fields from backend
+  const displayName = product?.localized_name || product?.name;
+  const displayDescription = product?.localized_description || product?.description;
   if (product) {
     priceNum = Number(product.price);
     discountedNum = Number(product.discounted_price);
@@ -84,15 +87,15 @@ export function ProductDetailsDialog({ open, onOpenChange, productId, fetchProdu
               <div className="flex-shrink-0 w-full md:w-64 h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                 <img
                   src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL }/${product.image_url}`}
-                  alt={product.name}
+                  alt={displayName}
                   className="object-cover w-full h-full"
                   onError={handleImgError}
                 />
               </div>
               <div className="flex flex-col flex-1 gap-2">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
-                  <DialogDescription>{product.description}</DialogDescription>
+                  <DialogTitle className="text-2xl font-bold">{displayName}</DialogTitle>
+                  <DialogDescription>{displayDescription}</DialogDescription>
                 </DialogHeader>
                 <div className="flex items-center gap-2 mt-2">
                   {hasDiscount ? (

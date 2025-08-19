@@ -64,9 +64,11 @@ export function ProductCatalog({
         page
       });
 
-      const response = await productService.getProducts(params);
+  // Always send language header for backend localization
+  const lang = (typeof window !== 'undefined' && (navigator.language || navigator.userLanguage))?.slice(0,2) || 'en';
+  const response = await productService.getProducts(params, { headers: { 'X-Locale-Language': lang } });
 
-      setProducts(response.data || response.products || []);
+  setProducts(response.data || response.products || []);
 
       // Handle pagination data structure
       if (response.pagination) {
