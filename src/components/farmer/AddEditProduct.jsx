@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import LocalizedFieldGroup from '@/components/ui/LocalizedFieldGroup';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
@@ -87,25 +88,25 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
   // Set up default values for add/edit
   const defaultValues = product
     ? {
-        name: product.name || '',
-        localized_names: {
-          en: product.localized_names?.en ?? '',
-          si: product.localized_names?.si ?? '',
-          ta: product.localized_names?.ta ?? '',
-        },
+        localized_names: product.name_json
+          ? JSON.parse(product.name_json)
+          : { en: product.name || '', si: '', ta: '' },
+        localized_descriptions: product.description_json
+          ? JSON.parse(product.description_json)
+          : { en: product.description || '', si: '', ta: '' },
         price: product.price ? String(product.price) : '',
         category_id: product.category_id ? String(product.category_id) : '',
         unit: product.unit || '',
         amount_per_unit: product.amount_per_unit ? String(product.amount_per_unit) : '1',
-        status: product.status || 'active',
+        status: product.status || (product.is_active ? 'active' : 'inactive'),
         image: null,
         is_seasonal_deal: !!product.is_seasonal_deal,
         is_flash_deal: !!product.is_flash_deal,
         discounted_price: product.discounted_price ? String(product.discounted_price) : '',
       }
     : {
-        name: '',
         localized_names: { en: '', si: '', ta: '' },
+        localized_descriptions: { en: '', si: '', ta: '' },
         price: '',
         category_id: '',
         unit: '',
@@ -173,36 +174,20 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
     try {
       // Only check for changes in edit mode
       if (product && product.product_id) {
-        // Compare all relevant fields
-        const orig = {
-          name: product.name || '',
-          localized_names: {
-            en: product.localized_names?.en ?? '',
-            si: product.localized_names?.si ?? '',
-            ta: product.localized_names?.ta ?? '',
-          },
-          price: String(product.price ?? ''),
-          category_id: String(product.category_id ?? ''),
-          unit: product.unit || '',
-          amount_per_unit: String(product.amount_per_unit ?? '1'),
-          status: product.status || 'active',
-          is_seasonal_deal: !!product.is_seasonal_deal,
-          is_flash_deal: !!product.is_flash_deal,
-          discounted_price: String(product.discounted_price ?? ''),
-        };
+        // Compare all relevant fields using name_json/description_json if present
+        const origNames = product.name_json ? JSON.parse(product.name_json) : { en: product.name || '', si: '', ta: '' };
+        const origDescs = product.description_json ? JSON.parse(product.description_json) : { en: product.description || '', si: '', ta: '' };
         const changed =
-          data.name !== orig.name ||
-          data.localized_names.en !== orig.localized_names.en ||
-          data.localized_names.si !== orig.localized_names.si ||
-          data.localized_names.ta !== orig.localized_names.ta ||
-          data.price !== orig.price ||
-          data.category_id !== orig.category_id ||
-          data.unit !== orig.unit ||
-          data.amount_per_unit !== orig.amount_per_unit ||
-          data.status !== orig.status ||
-          data.is_seasonal_deal !== orig.is_seasonal_deal ||
-          data.is_flash_deal !== orig.is_flash_deal ||
-          data.discounted_price !== orig.discounted_price ||
+          JSON.stringify(data.localized_names) !== JSON.stringify(origNames) ||
+          JSON.stringify(data.localized_descriptions) !== JSON.stringify(origDescs) ||
+          data.price !== String(product.price ?? '') ||
+          data.category_id !== String(product.category_id ?? '') ||
+          data.unit !== (product.unit || '') ||
+          data.amount_per_unit !== String(product.amount_per_unit ?? '1') ||
+          data.status !== (product.status || (product.is_active ? 'active' : 'inactive')) ||
+          data.is_seasonal_deal !== !!product.is_seasonal_deal ||
+          data.is_flash_deal !== !!product.is_flash_deal ||
+          data.discounted_price !== String(product.discounted_price ?? '') ||
           !!selectedImage;
         if (!changed) {
           toast.info('No changes to save.');
@@ -212,8 +197,8 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
         }
       }
       const formData = new FormData();
-      formData.append('name', data.name);
       formData.append('localized_names', JSON.stringify(data.localized_names));
+      formData.append('localized_descriptions', JSON.stringify(data.localized_descriptions));
       formData.append('price', parseFloat(data.price));
       formData.append('category_id', parseInt(data.category_id));
       formData.append('unit', data.unit);
@@ -328,56 +313,31 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
                     Basic Info
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="name" className="mb-1">
-                        Product Name (Default) *
-                      </Label>
-                      <Input id="name" {...register('name')} autoComplete="off" />
-                      {(formErrors.name || errors?.name) && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {formErrors.name?.message || errors?.name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label className="mb-1">Product Name (English)</Label>
-                      <Input
-                        {...register('localized_names.en')}
-                        autoComplete="off"
-                        placeholder="English name"
-                      />
-                      {formErrors.localized_names?.en?.message && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {formErrors.localized_names.en.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label className="mb-1">Product Name (සිංහල)</Label>
-                      <Input
-                        {...register('localized_names.si')}
-                        autoComplete="off"
-                        placeholder="සිංහල නම"
-                      />
-                      {formErrors.localized_names?.si?.message && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {formErrors.localized_names.si.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Label className="mb-1">Product Name (தமிழ்)</Label>
-                      <Input
-                        {...register('localized_names.ta')}
-                        autoComplete="off"
-                        placeholder="தமிழ் பெயர்"
-                      />
-                      {formErrors.localized_names?.ta?.message && (
-                        <p className="text-xs text-red-500 mt-1">
-                          {formErrors.localized_names.ta.message}
-                        </p>
-                      )}
-                    </div>
+                    <LocalizedFieldGroup
+                      label={t('productName')}
+                      name="localized_names"
+                      register={register}
+                      errors={formErrors.localized_names || {}}
+                      required={true}
+                      placeholders={{
+                        en: 'English name',
+                        si: 'සිංහල නම',
+                        ta: 'தமிழ் பெயர்',
+                      }}
+                    />
+                    <LocalizedFieldGroup
+                      label={t('productDescription')}
+                      name="localized_descriptions"
+                      register={register}
+                      errors={formErrors.localized_descriptions || {}}
+                      required={false}
+                      textarea={true}
+                      placeholders={{
+                        en: 'English description',
+                        si: 'සිංහල විස්තරය',
+                        ta: 'தமிழ் விளக்கம்',
+                      }}
+                    />
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="category_id" className="mb-1">
                         Category *
