@@ -77,7 +77,11 @@ const productSchema = z.object({
   ),
 });
 
-function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth = 'max-w-4xl' }) {
+
+import React from 'react';
+import { Drawer, DrawerHeader, DrawerBody, DrawerFooter } from '@/components/ui/drawer';
+
+function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide = 'right' }) {
   const { user } = useUser();
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,37 +90,41 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
   const [categories, setCategories] = useState([]);
 
   // Set up default values for add/edit
-  const defaultValues = product
-    ? {
-        localized_names: product.name_json
-          ? JSON.parse(product.name_json)
-          : { en: product.name || '', si: '', ta: '' },
-        localized_descriptions: product.description_json
-          ? JSON.parse(product.description_json)
-          : { en: product.description || '', si: '', ta: '' },
-        price: product.price ? String(product.price) : '',
-        category_id: product.category_id ? String(product.category_id) : '',
-        unit: product.unit || '',
-        amount_per_unit: product.amount_per_unit ? String(product.amount_per_unit) : '1',
-        status: product.status || (product.is_active ? 'active' : 'inactive'),
-        image: null,
-        is_seasonal_deal: !!product.is_seasonal_deal,
-        is_flash_deal: !!product.is_flash_deal,
-        discounted_price: product.discounted_price ? String(product.discounted_price) : '',
-      }
-    : {
-        localized_names: { en: '', si: '', ta: '' },
-        localized_descriptions: { en: '', si: '', ta: '' },
-        price: '',
-        category_id: '',
-        unit: '',
-        amount_per_unit: '1',
-        status: 'active',
-        image: null,
-        is_seasonal_deal: false,
-        is_flash_deal: false,
-        discounted_price: '',
-      };
+  const defaultValues = React.useMemo(
+    () =>
+      product
+        ? {
+            localized_names: product.name_json
+              ? JSON.parse(product.name_json)
+              : { en: product.name || '', si: '', ta: '' },
+            localized_descriptions: product.description_json
+              ? JSON.parse(product.description_json)
+              : { en: product.description || '', si: '', ta: '' },
+            price: product.price ? String(product.price) : '',
+            category_id: product.category_id ? String(product.category_id) : '',
+            unit: product.unit || '',
+            amount_per_unit: product.amount_per_unit ? String(product.amount_per_unit) : '1',
+            status: product.status || (product.is_active ? 'active' : 'inactive'),
+            image: null,
+            is_seasonal_deal: !!product.is_seasonal_deal,
+            is_flash_deal: !!product.is_flash_deal,
+            discounted_price: product.discounted_price ? String(product.discounted_price) : '',
+          }
+        : {
+            localized_names: { en: '', si: '', ta: '' },
+            localized_descriptions: { en: '', si: '', ta: '' },
+            price: '',
+            category_id: '',
+            unit: '',
+            amount_per_unit: '1',
+            status: 'active',
+            image: null,
+            is_seasonal_deal: false,
+            is_flash_deal: false,
+            discounted_price: '',
+          },
+    [product]
+  );
 
   const {
     register,
@@ -152,7 +160,7 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
       // Reset form with product data when editing
       reset(defaultValues);
     }
-  }, [product, reset]);
+  }, [product, reset, defaultValues]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -161,7 +169,7 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
         if (response.success && Array.isArray(response.data)) {
           setCategories(response.data);
         }
-      } catch (err) {
+      } catch {
         // Optionally handle error
       }
     }
@@ -250,16 +258,16 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="fullscreen">
-        <DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange} side={drawerSide}>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
+        <DrawerHeader>
           <h2 className="text-lg font-semibold">{product ? 'Edit Product' : t('addNewProduct')}</h2>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4 h-full flex flex-col">
+        </DrawerHeader>
+        <DrawerBody>
           <div className="flex-1 min-h-0 flex flex-col">
-            <div className="flex flex-col md:flex-row gap-8 w-full flex-1 min-h-0">
-              {/* Left: Image and upload */}
-              <div className="md:w-1/3 w-full flex flex-col items-center md:items-start">
+            <div className="flex flex-col gap-8 w-full flex-1 min-h-0">
+              {/* Image and upload */}
+              <div className="flex flex-col items-center md:items-start">
                 {/* Active switch card above image */}
                 <Controller
                   name="status"
@@ -306,13 +314,13 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
                   <p className="text-xs text-green-600 mt-1">Selected: {selectedImage.name}</p>
                 )}
               </div>
-              {/* Right: Form fields, scrollable */}
-              <div className="md:w-2/3 w-full grid grid-cols-1 md:grid-cols-2 gap-6 overflow-auto max-h-[70vh] pr-2">
-                <section className="col-span-2 rounded-lg bg-blue-50 dark:bg-blue-900 p-6 mb-2 border">
+              {/* Form fields, single column layout */}
+              <div className="flex flex-col gap-6 pr-2">
+                <section className="rounded-lg bg-blue-50 dark:bg-blue-900 p-6 mb-2 border">
                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">
                     Basic Info
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-6">
                     <LocalizedFieldGroup
                       label={t('productName')}
                       name="localized_names"
@@ -365,11 +373,11 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
                     </div>
                   </div>
                 </section>
-                <section className="col-span-2 rounded-lg bg-green-50 dark:bg-green-900 p-6 mb-2 border">
+                <section className="rounded-lg bg-green-50 dark:bg-green-900 p-6 mb-2 border">
                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">
                     Unit & Pricing
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="unit" className="mb-1">
                         Unit *
@@ -432,11 +440,11 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
                     </div>
                   </div>
                 </section>
-                <section className="col-span-2 rounded-lg bg-yellow-50 dark:bg-yellow-900 p-6 mb-2 border">
+                <section className="rounded-lg bg-yellow-50 dark:bg-yellow-900 p-6 mb-2 border">
                   <h3 className="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">
                     Deals & Status
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-2">
                       <Label className="mb-1">Product Status & Deals</Label>
                       <div className="flex flex-row flex-wrap gap-4">
@@ -499,32 +507,31 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, dialogWidth 
                     </div>
                   </div>
                 </section>
-               
               </div>
             </div>
           </div>
-          <DialogFooter className="!absolute left-0 right-0 bottom-0 w-full bg-white dark:bg-gray-900 z-20 border-t pt-4 pb-2 px-6 flex justify-end">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              className="mr-2"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : product ? (
-                'Update Product'
-              ) : (
-                'Add Product'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </DrawerBody>
+        <DrawerFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="mr-2"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : product ? (
+              'Update Product'
+            ) : (
+              'Add Product'
+            )}
+          </Button>
+        </DrawerFooter>
+      </form>
+    </Drawer>
   );
 }
 
