@@ -1,16 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Drawer, DrawerBody, DrawerFooter, DrawerHeader } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import LocalizedFieldGroup from '@/components/ui/LocalizedFieldGroup';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { farmerService, productService } from '@/lib/services';
-import { useUser } from '@/lib/UserContext.js';
-import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -19,7 +11,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { farmerService, productService } from '@/lib/services';
+import { useUser } from '@/lib/UserContext.js';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { ChevronRight, Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 const unitOptions = [
   { value: 'kg', label: 'Kilogram (kg)' },
@@ -77,9 +78,72 @@ const productSchema = z.object({
   ),
 });
 
+// Multi-level category dropdown using Radix DropdownMenu
+function CategoryDropdown({ categories, value, onChange, error }) {
+  // Find selected label for display
+  function findCategoryName(categories, id) {
+    for (const cat of categories) {
+      if (String(cat.category_id) === String(id)) return cat.category_name;
+      if (cat.children) {
+        const found = findCategoryName(cat.children, id);
+        if (found) return found;
+      }
+    }
+    return '';
+  }
 
-import React from 'react';
-import { Drawer, DrawerHeader, DrawerBody, DrawerFooter } from '@/components/ui/drawer';
+  // Recursive rendering for menu
+  function renderMenu(items) {
+    return items.map((cat) => {
+      const hasChildren = cat.children && Array.isArray(cat.children) && cat.children.length > 0;
+      if (hasChildren) {
+        return (
+          <DropdownMenu.Sub key={cat.category_id}>
+            <DropdownMenu.SubTrigger className="flex items-center justify-between w-full px-2 py-1 cursor-pointer hover:bg-accent rounded">
+              <span>{cat.category_name}</span>
+              <ChevronRight className="w-4 h-4 ml-2" />
+            </DropdownMenu.SubTrigger>
+            <DropdownMenu.SubContent className="ml-2 bg-popover border rounded shadow-md min-w-[180px]">
+              {renderMenu(cat.children)}
+            </DropdownMenu.SubContent>
+          </DropdownMenu.Sub>
+        );
+      } else {
+        return (
+          <DropdownMenu.Item
+            key={cat.category_id}
+            onSelect={() => onChange(String(cat.category_id))}
+            className={
+              'px-2 py-1 cursor-pointer hover:bg-accent rounded ' +
+              (String(value) === String(cat.category_id) ? 'bg-accent text-accent-foreground' : '')
+            }
+          >
+            {cat.category_name}
+          </DropdownMenu.Item>
+        );
+      }
+    });
+  }
+
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <button
+          type="button"
+          className={
+            'w-full border rounded px-3 py-2 text-left bg-background ' +
+            (error ? 'border-red-500' : 'border-input')
+          }
+        >
+          {value ? findCategoryName(categories, value) : 'Select category'}
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content className="bg-popover border rounded shadow-md min-w-[220px] p-1">
+        {renderMenu(categories)}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  );
+}
 
 function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide = 'right' }) {
   const { user } = useUser();
@@ -165,26 +229,35 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide =
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await productService.getCategories();
-        if (response.success && Array.isArray(response.data)) {
-          setCategories(response.data);
+        const categories = await productService.getCategories();
+        if (Array.isArray(categories)) {
+          setCategories(categories);
+          // After categories are loaded, set category_id if editing
+          if (product && product.category_id) {
+            setValue('category_id', String(product.category_id));
+          }
         }
       } catch {
         // Optionally handle error
       }
     }
     fetchCategories();
-  }, []);
+  }, [product, setValue]);
 
   const onSubmit = async (data) => {
+    console.log('Submitting product form', { data, product });
     setIsSubmitting(true);
     setErrors({});
     try {
       // Only check for changes in edit mode
       if (product && product.product_id) {
         // Compare all relevant fields using name_json/description_json if present
-        const origNames = product.name_json ? JSON.parse(product.name_json) : { en: product.name || '', si: '', ta: '' };
-        const origDescs = product.description_json ? JSON.parse(product.description_json) : { en: product.description || '', si: '', ta: '' };
+        const origNames = product.name_json
+          ? JSON.parse(product.name_json)
+          : { en: product.name || '', si: '', ta: '' };
+        const origDescs = product.description_json
+          ? JSON.parse(product.description_json)
+          : { en: product.description || '', si: '', ta: '' };
         const changed =
           JSON.stringify(data.localized_names) !== JSON.stringify(origNames) ||
           JSON.stringify(data.localized_descriptions) !== JSON.stringify(origDescs) ||
@@ -277,11 +350,15 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide =
                       <Switch
                         id="is_active"
                         checked={field.value === 'active'}
-                        onCheckedChange={checked => field.onChange(checked ? 'active' : 'inactive')}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? 'active' : 'inactive')
+                        }
                       />
                       <div>
                         <div className="font-medium">Active</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">Product is visible and available for sale</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Product is visible and available for sale
+                        </div>
                       </div>
                     </div>
                   )}
@@ -292,13 +369,21 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide =
                       src={
                         selectedImage
                           ? URL.createObjectURL(selectedImage)
-                          : `${import.meta.env.VITE_IMAGE_HOST_BASE_URL}${product.image_url}`
+                          : `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${product.image_url}`
                       }
                       alt={product?.name || 'Product'}
                       className="object-cover w-full h-full"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`;
+                      }}
                     />
                   ) : (
-                    <span className="text-gray-400">No Image</span>
+                    <img
+                      src={`${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`}
+                      alt="No Image"
+                      className="object-cover w-full h-full"
+                    />
                   )}
                 </div>
                 <Input
@@ -350,21 +435,14 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide =
                       <Label htmlFor="category_id" className="mb-1">
                         Category *
                       </Label>
-                      <Select
+                      <CategoryDropdown
+                        categories={categories}
                         value={watch('category_id')}
-                        onValueChange={(value) => setValue('category_id', value)}
-                      >
-                        <SelectTrigger id="category_id" className="w-full">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.category_id} value={String(cat.category_id)}>
-                              {cat.category_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={(value) =>
+                          setValue('category_id', value, { shouldDirty: true, shouldTouch: true })
+                        }
+                        error={formErrors.category_id || errors?.category_id}
+                      />
                       {(formErrors.category_id || errors?.category_id) && (
                         <p className="text-xs text-red-500 mt-1">
                           {formErrors.category_id?.message || errors?.category_id}
@@ -461,7 +539,9 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide =
                               />
                               <div>
                                 <div className="font-medium">Seasonal Deal</div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">Highlight as a seasonal offer</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  Highlight as a seasonal offer
+                                </div>
                               </div>
                             </div>
                           )}
@@ -478,7 +558,9 @@ function ProductForm({ open, onOpenChange, onProductAdded, product, drawerSide =
                               />
                               <div>
                                 <div className="font-medium">Flash Deal</div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">Limited time flash sale</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  Limited time flash sale
+                                </div>
                               </div>
                             </div>
                           )}

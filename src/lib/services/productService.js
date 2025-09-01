@@ -77,8 +77,9 @@ class ProductService {
    */
   async getCategories() {
     try {
-  const response = await api.get('/products/categories');
-  return response.data && Array.isArray(response.data.data) ? response.data.data : [];
+      const response = await api.get('/products/categories');
+      const data = response.data && Array.isArray(response.data.data) ? response.data.data : [];
+      return data; // Return nested tree as-is
     } catch (error) {
       console.error('Error fetching categories:', error);
       throw this.handleError(error);

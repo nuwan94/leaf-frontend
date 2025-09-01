@@ -70,55 +70,58 @@ export function DataTable({
         </div>
       )}
 
-      {/* Table Container with scrollable body */}
-      <div className="w-full flex-1 min-h-0 border rounded-md flex flex-col overflow-hidden">
-        <Table className="w-full">
-          {/* Fixed Header */}
-          <TableHeader className="bg-background sticky top-0 z-10">
-            <TableRow>
-              {columns.map((column, index) => (
-                <TableHead
-                  key={column.id || column.accessorKey || index}
-                  className="font-medium border-b bg-muted/50"
-                  style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}}
-                >
-                  {column.header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-        </Table>
-
-        {/* Scrollable Table Body */}
-        <div className="flex-1 max-h-[60vh] overflow-y-auto">
-          <Table className="w-full">
-            <TableBody>
-              {data && data.length > 0 ? (
-                data.map((row, rowIndex) => (
-                  <TableRow key={row._tempId || rowIndex} className="border-b">
-                    {columns.map((column, colIndex) => (
-                      <TableCell
-                        key={`${rowIndex}-${colIndex}`}
-                        className="p-4"
-                        style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}}
-                      >
-                        {column.cell
-                          ? column.cell({ row: { original: row, index: rowIndex } })
-                          : row[column.accessorKey]
-                        }
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                    No results found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+      {/* Table Container with horizontal scroll on small screens */}
+  <div className="w-full flex-1 min-h-0 border rounded-md flex flex-col overflow-hidden max-h-[70vh]">
+        <div className="w-full overflow-x-auto">
+          <Table className="w-full min-w-[700px]">
+            {/* Fixed Header */}
+            <TableHeader className="bg-background sticky top-0 z-10">
+              <TableRow>
+                {columns.map((column, index) => (
+                  <TableHead
+                    key={column.id || column.accessorKey || index}
+                    className="font-medium border-b bg-muted/50"
+                    style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}}
+                  >
+                    {column.header}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
           </Table>
+        </div>
+        {/* Scrollable Table Body, always matches table width */}
+  <div className="flex-1 overflow-y-auto w-full">
+          <div className="w-full overflow-x-auto">
+            <Table className="w-full min-w-[700px]">
+              <TableBody>
+                {data && data.length > 0 ? (
+                  data.map((row, rowIndex) => (
+                    <TableRow key={row._tempId || rowIndex} className="border-b">
+                      {columns.map((column, colIndex) => (
+                        <TableCell
+                          key={`${rowIndex}-${colIndex}`}
+                          className="p-4"
+                          style={column.width ? { width: column.width, minWidth: column.width, maxWidth: column.width } : {}}
+                        >
+                          {column.cell
+                            ? column.cell({ row: { original: row, index: rowIndex } })
+                            : row[column.accessorKey]
+                          }
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                      No results found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 

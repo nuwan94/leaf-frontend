@@ -18,6 +18,7 @@ const FarmerProducts = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
@@ -39,8 +40,8 @@ const FarmerProducts = () => {
       await farmerService.updateInventory(productId, { quantity_available: qty }, user.id);
       toast.success('Inventory updated!');
       setInventoryEdits((prev) => ({ ...prev, [productId]: undefined }));
-      fetchProducts(1);
-      setPage(1);
+  setPageIndex(0);
+  fetchProducts(0, pageSize);
     } catch (err) {
       toast.error(err.message || 'Failed to update inventory');
     } finally {
@@ -58,7 +59,8 @@ const FarmerProducts = () => {
       const response = await farmerService.getProducts({ farmerId: user.id, page: pageIdx + 1, limit: size });
       if (response.success && Array.isArray(response.data)) {
         setProducts(response.data);
-        setTotalItems(response.pagination?.total ?? response.data.length);
+        setTotalItems(response.pagination?.total_items ?? response.data.length);
+        setTotalPages(response.pagination?.total_pages ?? 1);
       }
     } catch {
       // Optionally handle error
@@ -81,8 +83,8 @@ const FarmerProducts = () => {
       const response = await farmerService.deleteProduct(productId, user.id);
       if (response.success) {
         toast.success('Product deleted successfully!');
-        fetchProducts(1);
-        setPage(1);
+    setPageIndex(0);
+    fetchProducts(0, pageSize);
       } else {
         toast.error(response.message || 'Failed to delete product');
       }
@@ -98,8 +100,8 @@ const FarmerProducts = () => {
   const handleStatusChange = async (productId, is_active) => {
     try {
       await farmerService.updateProduct(productId, { is_active }, user?.id);
-      fetchProducts(1);
-      setPage(1);
+    setPageIndex(0);
+    fetchProducts(0, pageSize);
     } catch (err) {
       toast.error(err.message || 'Failed to update status');
     }
@@ -113,10 +115,10 @@ const FarmerProducts = () => {
       width: 80,
       cell: ({ row }) => (
         <img
-          src={row.original.image_url ? `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${row.original.image_url}` : '/uploads/products/default.jpg'}
+          src={row.original.image_url ? `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}${row.original.image_url}` : `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`}
           alt={row.original.localized_name || row.original.name}
           className="w-14 h-14 object-cover rounded border"
-          onError={e => { e.target.onerror = null; e.target.src = '/uploads/products/default.jpg'; }}
+          onError={e => { e.target.onerror = null; e.target.src = `${import.meta.env.VITE_IMAGE_HOST_BASE_URL || 'http://localhost:8000'}/uploads/products/default.jpg`; }}
         />
       ),
     },
@@ -200,7 +202,7 @@ const FarmerProducts = () => {
         data={products}
         pageIndex={pageIndex}
         pageSize={pageSize}
-        pageCount={Math.ceil(totalItems / pageSize)}
+        pageCount={totalPages}
         totalItems={totalItems}
         onPaginationChange={({ pageIndex: newIdx, pageSize: newSize }) => {
           setPageIndex(newIdx);
@@ -217,7 +219,8 @@ const FarmerProducts = () => {
           setEditProduct(null);
         }}
         onProductAdded={() => {
-          fetchProducts(pageIndex, pageSize);
+            setPageIndex(0);
+            fetchProducts(0, pageSize);
         }}
         product={editProduct ? { ...editProduct, product_id: editProduct.id } : null}
       />

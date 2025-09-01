@@ -66,7 +66,7 @@ const initI18n = async () => {
       fallbackLng: 'en',
       interpolation: { escapeValue: false },
       // Enable debug mode in development
-      debug: process.env.NODE_ENV === 'development',
+      // debug: process.env.NODE_ENV === 'development',
     });
 
   // Listen for language changes and fetch new messages
